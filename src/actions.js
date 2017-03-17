@@ -1,0 +1,1 @@
+export const GROUPS_CHANGED = 'GROUPS_CHANGED'
