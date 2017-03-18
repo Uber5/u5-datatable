@@ -1,7 +1,5 @@
 const path = require('path')
 
-console.log('__dirname', __dirname)
-
 module.exports = {
   entry: {
     app: path.join(__dirname, 'src')
@@ -24,11 +22,11 @@ module.exports = {
         exclude: /(node_modules|bower_components)/,
         loader: 'babel',
         query: {
-          presets:['es2015', 'react']
+          presets:['es2015', 'react', 'stage-2']
         }
       }
     ]
   },
-  resolve: { fallback: path.join(__dirname, "../..", "node_modules") },
-  resolveLoader: { fallback: path.join(__dirname, "../..", "node_modules") }
+  resolve: { fallback: path.join(__dirname, "..", "node_modules") },
+  resolveLoader: { fallback: path.join(__dirname, "..", "node_modules") }
 }

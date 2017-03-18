@@ -1,8 +1,11 @@
 //@flow
 import * as R from 'ramda'
 
-import { createReducer } from '../../lib/redux-utils'
 import { GROUPS_CHANGED } from './actions'
+
+const createReducer = (init, handlers) =>
+  (state = init, action) =>
+    R.propOr(R.identity, R.prop('type', action), handlers)(state, action)
 
 export default (config: {
   tables: any
