@@ -1,13 +1,45 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
-import { Provider } from 'react-redux'
 import { createStore, combineReducers } from 'redux'
+import { reducer as formReducer } from 'redux-form'
+import { Provider } from 'react-redux'
+import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider'
 import {
   configureDatatableReducer,
   GroupsConfigurator,
   GroupableDatatable
 } from '../../src'
 
-const App = () => <p>hello...</p>
+import tables from './config'
+
+import injectTapEventPlugin from 'react-tap-event-plugin'
+injectTapEventPlugin()
+
+const datatableReducer = configureDatatableReducer({
+  namespace: 'datatable',
+  tables
+})
+
+const store = createStore(
+  combineReducers({
+    datatable: datatableReducer,
+    form: formReducer
+  })
+)
+
+const peopleRows = [
+  { firstName: 'Joe', lastName: 'Soap', details: { dob: new Date(1982, 5, 13) } },
+  { firstName: 'Jane', lastName: 'Soap', details: { dob: new Date(1983, 2, 1) } },
+]
+
+const App = () => <Provider store={store}>
+  <MuiThemeProvider>
+    <div>
+      <h1>Datatable Demo</h1>
+      <GroupsConfigurator namespace="datatable" table="people" />
+      <GroupableDatatable namespace="datatable" table="people" rows={peopleRows}/>
+    </div>
+  </MuiThemeProvider>
+</Provider>
 
 ReactDOM.render(<App />, document.getElementById('app'))

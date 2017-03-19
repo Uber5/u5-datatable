@@ -1,5 +1,5 @@
 export default {
-  things: {
+  people: {
     groups: [],
     predefinedGroups: [],
     columnSpecs: {
@@ -8,6 +8,12 @@ export default {
       'details.dob': {
         label: 'Birth date',
         format: v => v.toLocaleDateString()
+      }
+    },
+    aggregationSpecs: {
+      count: {
+        f: rows => rows.length,
+        label: '#'
       }
     }
   }
