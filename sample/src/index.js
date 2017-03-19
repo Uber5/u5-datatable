@@ -28,8 +28,9 @@ const store = createStore(
 )
 
 const peopleRows = [
-  { firstName: 'Joe', lastName: 'Soap', details: { dob: new Date(1982, 5, 13) } },
+  { firstName: 'Joe', lastName: 'Soap', details: { dob: new Date(1980, 5, 13) } },
   { firstName: 'Jane', lastName: 'Soap', details: { dob: new Date(1983, 2, 1) } },
+  { firstName: 'Anne', lastName: 'Schneier', details: { dob: new Date(1973, 2, 1) } },
 ]
 
 const App = () => <Provider store={store}>

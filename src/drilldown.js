@@ -16,13 +16,14 @@ import MapIcon from 'material-ui/svg-icons/maps/place'
 
 import FloatingActionButton from 'material-ui/FloatingActionButton'
 
-import IconExpanded from 'material-ui/svg-icons/navigation/expand-less'
-import IconCollapsed from 'material-ui/svg-icons/navigation/expand-more'
+import IconExpanded from 'material-ui/svg-icons/content/remove'
+import IconCollapsed from 'material-ui/svg-icons/content/add'
 import MoreIcon from 'material-ui/svg-icons/navigation/more-horiz'
 import CloseIcon from 'material-ui/svg-icons/navigation/close'
 
 import * as d3c from 'd3-collection'
 import * as d3a from 'd3-array'
+import * as d3ScaleChromatic from 'd3-scale-chromatic'
 import * as R from 'ramda'
 
 import DrilldownMap from './map'
@@ -109,13 +110,19 @@ const GroupRow1 = ({ config, data, group, groups, onOpen, isOpen, level }) => {
     }
   })
 
+  const nGroups = config.groups.length, nGroupsLeft = groups.length
+  const scaleValue = 0.85 * (nGroups - nGroupsLeft) / nGroups
+
   return (
     <TableRow onCellClick={(e, x, colNumber) => {
       if (colNumber === 0) {
         onOpen()
       }
     }} style={styles.tableRowColumn}>
-      <TableRowColumn style={styles.tableRowColumnClickable}>
+      <TableRowColumn style={R.merge(styles.tableRowColumnClickable, {
+        width: config.groupColumnWidth,
+        background: d3ScaleChromatic.interpolateSpectral(scaleValue)
+      })}>
         { isOpen ? <IconExpanded/> : <IconCollapsed/> }
         {
           group.displayValue
@@ -129,7 +136,10 @@ const GroupRow1 = ({ config, data, group, groups, onOpen, isOpen, level }) => {
       {
         aggregations.map((agg, ix) => {
           return (
-            <TableRowColumn key={ix} style={styles.tableRowColumn}>
+            <TableRowColumn key={ix} style={R.merge(
+              styles.tableRowColumn,
+              { width: agg.spec.width}
+            )}>
               {agg.spec.component ? agg.spec.component({ value: agg.value }) : `${ agg.value }`}
             </TableRowColumn>
           )
@@ -142,7 +152,7 @@ const GroupRow1 = ({ config, data, group, groups, onOpen, isOpen, level }) => {
 const GroupRow2 = ({ config, data, group, groups, level }) => {
   return (
     <TableRow style={styles.tableRowColumn}>
-      <TableRowColumn style={{ borderLeft: '1px solid rgb(224, 224, 224)', paddingLeft: 0, paddingRight: 0 }}
+      <TableRowColumn style={{ paddingLeft: 0, paddingRight: 0 }}
         colSpan={R.keys(config.aggregationSpecs).length + 2}>
 
         <DrilldownRecursive level={level+1} {...{ config, data: data.values, groups }} />
@@ -168,12 +178,12 @@ class DrilldownRecursive extends React.Component {
 
       return (
         <div>
-          <Table>
+          <Table wrapperStyle={{ minWidth: config.tableMinWidth }}>
             {
               isRoot &&
               <TableHeader displaySelectAll={false} adjustForCheckbox={false}>
                 <TableRow>
-                  <TableHeaderColumn>
+                  <TableHeaderColumn style={{ width: config.groupColumnWidth }}>
                     Group
                   </TableHeaderColumn>
                   <TableHeaderColumn style={styles.actionsRowColumn}>
@@ -183,7 +193,7 @@ class DrilldownRecursive extends React.Component {
                     (R.keys(config.aggregationSpecs) || []).map((agg, ix) => {
                       const spec = config.aggregationSpecs[agg]
                       return (
-                        <TableHeaderColumn key={ix}>
+                        <TableHeaderColumn key={ix} style={{width: spec.width}}>
                           {spec.label || agg}
                         </TableHeaderColumn>
                       )
@@ -241,7 +251,7 @@ class DrilldownRecursive extends React.Component {
                     const value = R.path(specKey.split('.'), row)
                     return (
                       <TableRowColumn key={specKey} style={styles.tableRowColumn}>
-                        {spec.format ? spec.format(value) : `${ value }` }
+                        {spec.format ? spec.format(row) : `${ value }` }
                       </TableRowColumn>
                     )
                   })
