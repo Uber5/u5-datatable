@@ -42,6 +42,10 @@ const styles = {
     width: 24,
     height: 24,
     cursor: 'pointer',
+  },
+  actionsRowColumnHeader: {
+    width: 24,
+    height: 24,
   }
 }
 
@@ -185,7 +189,7 @@ class DrilldownRecursive extends React.Component {
                   <TableHeaderColumn style={{ width: config.groupColumnWidth }}>
                     Group
                   </TableHeaderColumn>
-                  <TableHeaderColumn style={styles.actionsRowColumn}>
+                  <TableHeaderColumn style={styles.actionsRowColumnHeader}>
                     Actions
                   </TableHeaderColumn>
                   {
