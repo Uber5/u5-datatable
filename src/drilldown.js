@@ -1,10 +1,9 @@
 import React from 'react'
 import { connect } from 'react-redux'
-import {Card, CardActions, CardHeader, CardMedia, CardTitle, CardText} from 'material-ui/Card'
 import {
   Table, TableBody, TableHeader, TableHeaderColumn, TableRow, TableRowColumn
 } from 'material-ui/Table'
-import { Tabs, Tab } from 'material-ui/Tabs'
+import Subheader from 'material-ui/Subheader'
 
 import IconButton from 'material-ui/IconButton'
 import IconMenu from 'material-ui/IconMenu'
@@ -270,8 +269,11 @@ DrilldownRecursive.propTypes = {
 
 }
 
-let GroupableDatatable = ({ groupsSpec, rows, config }) => {
+import TableOptionsMenu from './table-options-menu'
 
+let GroupableDatatable = ({ groupsSpec, rows, config, table, title }) => {
+
+console.log('GroupableDatatable, groupsSpec', groupsSpec);
   const { groups } = groupsSpec
   const data = groups.reduce((d, group) => {
     const sort = group.sort === 'descending' ? d3a.descending : d3a.ascending
@@ -291,31 +293,14 @@ let GroupableDatatable = ({ groupsSpec, rows, config }) => {
 
   return (
     <div>
+      <Subheader>
+        {title || 'Datatable'}
+        <span style={{ float: 'right' }}>
+          <TableOptionsMenu {...{ groupsSpec, config, groups, data, table }} />
+        </span>
+      </Subheader>
       <DrilldownRecursive isRoot={true} level={0} {...{ config, groups, data }} />
-      { data &&
-        <Card>
-          <CardHeader title="Raw data" actAsExpander={true} showExpandableButton={true} />
-          <CardText expandable={true}>
-            <Tabs>
-              <Tab label="data">
-                <pre>
-                  {JSON.stringify(data, null, 2)}
-                </pre>
-              </Tab>
-              <Tab label="config">
-                <pre>
-                  {JSON.stringify(config, null, 2)}
-                </pre>
-              </Tab>
-              <Tab label="groups">
-                <pre>
-                  {JSON.stringify(groups, null, 2)}
-                </pre>
-              </Tab>
-            </Tabs>
-          </CardText>
-        </Card>
-      }
+
     </div>
   )
 }
@@ -324,14 +309,15 @@ GroupableDatatable = connect((state, ownProps) => {
   const { namespace, rows, table } = ownProps
   const groupsSpec = state[namespace].tables[table]
   return {
-    rows, groupsSpec, config: state[namespace].tables[table]
+    rows, groupsSpec, config: state[namespace].tables[table], table
   }
 })(GroupableDatatable)
 
 GroupableDatatable.propTypes = {
   namespace: React.PropTypes.string.isRequired,
   table: React.PropTypes.string.isRequired,
-  rows: React.PropTypes.any.isRequired
+  rows: React.PropTypes.any.isRequired,
+  title: React.PropTypes.any
 }
 
 export default GroupableDatatable

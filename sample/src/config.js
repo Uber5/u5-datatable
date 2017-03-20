@@ -6,7 +6,8 @@ export default {
     columnSpecs: {
       firstName: {},
       lastName: {},
-      fullName: {
+      fullName: { // TODO: Not a good idea! Cannot group on a value that does not
+                  // exist in the raw data...
         label: 'Full name',
         format: v => ([ v.firstName, v.lastName ].join(' '))
       },
@@ -53,7 +54,7 @@ export default {
         ]
       },
       {
-        label: 'Sill many groups',
+        label: 'Silly many groups',
         groups: R.times(n => ({
           type: 'custom',
           expression: `v.firstName && v.firstName[${ n }]`,

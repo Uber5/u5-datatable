@@ -24,7 +24,8 @@ const store = createStore(
   combineReducers({
     datatable: datatableReducer,
     form: formReducer
-  })
+  }),
+  window.__REDUX_DEVTOOLS_EXTENSION__ && window.__REDUX_DEVTOOLS_EXTENSION__()
 )
 
 const peopleRows = [
@@ -37,8 +38,7 @@ const App = () => <Provider store={store}>
   <MuiThemeProvider>
     <div>
       <h1>Datatable Demo</h1>
-      <GroupsConfigurator namespace="datatable" table="people" />
-      <GroupableDatatable namespace="datatable" table="people" rows={peopleRows}/>
+      <GroupableDatatable title="Example People" namespace="datatable" table="people" rows={peopleRows}/>
     </div>
   </MuiThemeProvider>
 </Provider>

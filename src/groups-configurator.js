@@ -201,7 +201,7 @@ GroupsState = connect((state, ownProps) => {
   }
 })(GroupsState)
 
-const GroupsDialog = ({ open, done, table, groupsConfig }) => {
+export const GroupsDialog = ({ open, done, table, groupsConfig }) => {
   if (!open) { return null }
   return (
     <Form
