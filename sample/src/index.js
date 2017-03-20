@@ -38,7 +38,12 @@ const App = () => <Provider store={store}>
   <MuiThemeProvider>
     <div>
       <h1>Datatable Demo</h1>
-      <GroupableDatatable title="Example People" namespace="datatable" table="people" rows={peopleRows}/>
+      <GroupableDatatable
+        title="Example People"
+        namespace="datatable"
+        table="people"
+        rows={peopleRows}
+      />
     </div>
   </MuiThemeProvider>
 </Provider>

@@ -224,6 +224,7 @@ class DrilldownRecursive extends React.Component {
       )
     } else {
       // render rows
+      const sortedData = config.sort ? config.sort(data) : data
       return (
         <Table>
           <TableHeader displaySelectAll={false} adjustForCheckbox={false}>
@@ -242,7 +243,7 @@ class DrilldownRecursive extends React.Component {
           </TableHeader>
           <TableBody>
             {
-              data.map((row, index) => (
+              sortedData.map((row, index) => (
                 <TableRow key={index} style={styles.tableRowColumn}>
                 {
                   R.keys(config.columnSpecs).map(specKey => {
@@ -273,7 +274,6 @@ import TableOptionsMenu from './table-options-menu'
 
 let GroupableDatatable = ({ groupsSpec, rows, config, table, title }) => {
 
-console.log('GroupableDatatable, groupsSpec', groupsSpec);
   const { groups } = groupsSpec
   const data = groups.reduce((d, group) => {
     const sort = group.sort === 'descending' ? d3a.descending : d3a.ascending

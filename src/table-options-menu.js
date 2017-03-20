@@ -37,8 +37,6 @@ class TableOptionsMenu extends React.Component {
 
     const { data, config, groups, table, groupsSpec } = this.props
 
-    console.log('TableOptionsMenu', this.props)
-
     const groupsItems = (config.predefinedGroups || []).map(g => (
       <MenuItem key={g.label} value={g.label} primaryText={g.label}
         onClick={ () => this.props.choosePredefinedGroup(g.label) }

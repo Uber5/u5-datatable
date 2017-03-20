@@ -3,8 +3,18 @@ import moment from 'moment'
 
 export default {
   people: {
+    /**
+     * specify a sort function, which takes an array of rows as input.
+     * Here, we use ramda to create such a function for us.
+     */
+    sort: R.sortWith([
+      R.ascend(R.prop('lastName')),
+      R.ascend(R.prop('firstName'))
+    ]),
     columnSpecs: {
-      firstName: {},
+      firstName: {
+        label: 'First name'
+      },
       lastName: {},
       fullName: { // TODO: Not a good idea! Cannot group on a value that does not
                   // exist in the raw data...
