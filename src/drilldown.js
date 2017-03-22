@@ -311,14 +311,16 @@ let GroupableDatatable = ({ groupsSpec, rows, config, table, title }) => {
 
 GroupableDatatable = connect((state, ownProps) => {
   const { namespace, rows, table } = ownProps
-  const groupsSpec = state[namespace].tables[table]
+  const key = namespace || 'datatable'
+  const groupsSpec = state[key].tables[table]
   return {
-    rows, groupsSpec, config: state[namespace].tables[table], table
+    // TODO: groupsSpec and config are the same value??
+    rows, groupsSpec, config: state[key].tables[table], table
   }
 })(GroupableDatatable)
 
 GroupableDatatable.propTypes = {
-  namespace: React.PropTypes.string.isRequired,
+  namespace: React.PropTypes.string,
   table: React.PropTypes.string.isRequired,
   rows: React.PropTypes.any.isRequired,
   title: React.PropTypes.any

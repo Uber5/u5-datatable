@@ -9,6 +9,7 @@ import { RadioButton } from 'material-ui/RadioButton'
 import MenuItem from 'material-ui/MenuItem'
 import { TextField, RadioButtonGroup, SelectField } from 'redux-form-material-ui'
 import Popover from 'material-ui/Popover/Popover'
+import Toggle from 'material-ui/Toggle'
 import { Card, CardText, CardHeader } from 'material-ui/Card'
 import FloatingActionButton from 'material-ui/FloatingActionButton'
 import EditIcon from 'material-ui/svg-icons/editor/mode-edit'
@@ -65,6 +66,7 @@ const renderGroups = ({ fields, groupsValues, table, config, meta: { touched, er
     } else if (group.type === 'custom') {
       return group.expression || '?'
     }
+    return 'New group'
   }
 
   return (
@@ -72,8 +74,11 @@ const renderGroups = ({ fields, groupsValues, table, config, meta: { touched, er
       {
         fields.map((group, index) => {
           const values = (groupsValues && groupsValues[index]) || {}
+          // TODO: we cannot have initiallyExpanded depend on e.g. 'values.type'
+          // being there or not, as this gets rendered twice
+          // initially, first with an empty array as values (?), then with values.
           return (
-            <Card key={index} >
+            <Card key={index} initiallyExpanded={true}>
               <CardHeader title={
                 <span>
                   {`${ index + 1 }: ${ groupConfigLabel(values) }`}
@@ -94,6 +99,7 @@ const renderGroups = ({ fields, groupsValues, table, config, meta: { touched, er
                     </IconButton>
                   }
                 </span>}
+                actAsExpander={true}
                 showExpandableButton={true}
              />
               <CardText expandable={true}>
@@ -140,30 +146,62 @@ const renderGroups = ({ fields, groupsValues, table, config, meta: { touched, er
 
 const getFormName = tableName => `groupsForm_${ tableName }`
 
-let Form = ({ handleSubmit, pristine, groupsValues, table, config, open, done }) => {
-  return (
-    <form onSubmit={handleSubmit}>
-      <Dialog modal={false} open={open}
-        onRequestClose={done}
-        autoScrollBodyContent={true}
-        actions={[
-          <FlatButton primary={false} label="Cancel" onClick={done}/>,
-          <FlatButton primary={true} disabled={pristine} type="submit" label="Update groups" onClick={handleSubmit}/>,
-        ]}
-      >
-        <FieldArray name="groups" component={renderGroups} props={{
-          groupsValues,
-          table,
-          config
-        }} />
-      </Dialog>
-    </form>
-  )
+class GroupsDialogAndForm extends React.Component {
+  state = { expert: false }
+  render() {
+
+    const {
+      handleSubmit, pristine, groupsValues, table, config, open, done
+    } = this.props
+
+    return (
+      <form onSubmit={handleSubmit}>
+        <Dialog modal={false} open={open}
+          onRequestClose={done}
+          autoScrollBodyContent={true}
+          actions={[
+            <FlatButton primary={false} label="Cancel" onClick={done}/>,
+            <FlatButton primary={true} disabled={pristine} type="submit" label="Update groups" onClick={handleSubmit}/>,
+          ]}
+        >
+          { !this.state.expert &&
+            <FieldArray name="groups" component={renderGroups} props={{
+              groupsValues,
+              table,
+              config
+            }} />
+          }
+          { this.state.expert &&
+            <Field name="expertGroups" component={TextField} multiLine={true} rows={10} hintText="Export group configuration (JSON)"/>
+          }
+          <span style={{ float: 'right' }}>
+            <Toggle onToggle={(e, checked) => {
+              console.log('expert', checked)
+              this.setState({ expert: checked })
+            }}
+             label="Expert mode"
+            />
+          </span>
+        </Dialog>
+      </form>
+    )
+  }
 }
+let Form = GroupsDialogAndForm
 
 Form = reduxForm({
   onSubmit: (values, dispatch, ownProps) => {
 
+console.log('onSubmit, values', values)
+
+    if (values.expertGroups) {
+      console.log('EXPERT', values.expertGroups)
+      values.groups = JSON.parse(values.expertGroups)
+      if (R.keys(validate(values)).length) {
+        alert("Invalid JSON for groups, please double check.")
+        return
+      }
+    }
     dispatch({ type: GROUPS_CHANGED, values: {...values}, table: ownProps.table })
     ownProps.done() // need this to close popover
 

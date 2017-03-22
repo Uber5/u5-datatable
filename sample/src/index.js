@@ -16,7 +16,6 @@ import injectTapEventPlugin from 'react-tap-event-plugin'
 injectTapEventPlugin()
 
 const datatableReducer = configureDatatableReducer({
-  namespace: 'datatable',
   tables
 })
 
@@ -40,7 +39,6 @@ const App = () => <Provider store={store}>
       <h1>Datatable Demo</h1>
       <GroupableDatatable
         title="Example People"
-        namespace="datatable"
         table="people"
         rows={peopleRows}
       />

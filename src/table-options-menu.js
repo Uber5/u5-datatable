@@ -42,12 +42,14 @@ class TableOptionsMenu extends React.Component {
         onClick={ () => this.props.choosePredefinedGroup(g.label) }
       />
     ))
+    if (groupsItems.length) {
+      groupsItems.push(<Divider />)
+    }
     groupsItems.push(
-      <MenuItem value="_custom" primaryText="Custom..."
+      <MenuItem value="_custom" primaryText="Custom"
         onClick={e => this.setState({ customOpen: true })}
       />
     )
-
     return (
       <div>
 
@@ -61,8 +63,12 @@ class TableOptionsMenu extends React.Component {
           <MenuItem onTouchTap={() => console.log('more stuff')} primaryText="Do more stuff" />
           <MenuItem onTouchTap={this.clearGroups} primaryText="Clear groups" />
           <Divider />
+          <MenuItem
+            primaryText="Export"
+          />
+          <Divider />
           <MenuItem onTouchTap={this.handleRawOpen}
-            primaryText="View raw data & config"
+            primaryText="Expert view"
           />
         </IconMenu>
 
