@@ -73,6 +73,7 @@ class TableOptionsMenu extends React.Component {
             onTouchTap={this.clearGroups}
             primaryText="Clear groups"
             leftIcon={<ClearGroupsIcon />}
+            disabled={groups.length === 0}
           />
           <Divider />
           <MenuItem

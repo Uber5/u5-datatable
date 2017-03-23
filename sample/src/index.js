@@ -91,7 +91,7 @@ const aggregations = {
     label: 'Actions',
     f: (rows, group) => rows,
     component: ({ value, group }) => (
-      <div>
+      <div style={{ cursor: 'pointer' }}>
         <MapIcon onClick={() => console.log('here be map...', value, group)} />
       </div>
     )
