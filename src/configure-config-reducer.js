@@ -7,13 +7,11 @@ const createReducer = (init, handlers) =>
   (state = init, action) =>
     R.propOr(R.identity, R.prop('type', action), handlers)(state, action)
 
-export default (config: {
-  tables: any
-}) => createReducer(config, {
+export default (config: { /* TODO: no config required atm */}) => createReducer(config, {
   [GROUPS_CHANGED]: (state, action) => {
     return R.merge(state, {
       tables: {
-        [action.table]: R.merge(state.tables[action.table], {
+        [action.table]: R.merge((state.tables || {})[action.table], {
           groups: action.values.groups,
           label: action.values.label
         })

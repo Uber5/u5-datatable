@@ -35,9 +35,10 @@ class TableOptionsMenu extends React.Component {
 
   render() {
 
-    const { data, config, groups, table, groupsSpec } = this.props
+    const { data, config, currentConfig, table } = this.props
+    const { groups } = currentConfig
 
-    const groupsItems = (config.predefinedGroups || []).map(g => (
+    const groupsItems = (config.groupings || []).map(g => (
       <MenuItem key={g.label} value={g.label} primaryText={g.label}
         onClick={ () => this.props.choosePredefinedGroup(g.label) }
       />
@@ -60,7 +61,6 @@ class TableOptionsMenu extends React.Component {
             rightIcon={<ArrowDropRight />}
             menuItems={groupsItems}
           />
-          <MenuItem onTouchTap={() => console.log('more stuff')} primaryText="Do more stuff" />
           <MenuItem onTouchTap={this.clearGroups} primaryText="Clear groups" />
           <Divider />
           <MenuItem
@@ -76,7 +76,8 @@ class TableOptionsMenu extends React.Component {
           open={this.state.customOpen}
           done={() => this.setState({ customOpen: false })}
           table={table}
-          groupsConfig={groupsSpec}
+          config={config}
+          groups={groups}
         />
 
         <Dialog
@@ -118,7 +119,7 @@ class TableOptionsMenu extends React.Component {
 export default connect((state, ownProps) => {
   return {}
 }, (dispatch, ownProps) => {
-  const { table, config, groupsSpec } = ownProps
+  const { table, config } = ownProps
   return {
     clearGroups: () => dispatch({
       type: GROUPS_CHANGED,
@@ -129,8 +130,8 @@ export default connect((state, ownProps) => {
       table
     }),
     choosePredefinedGroup: label => {
-      const predefinedGroups = groupsSpec.predefinedGroups
-      const groups = (R.find(R.propEq('label', label), predefinedGroups) || {}).groups
+      const groupings = config.groupings
+      const groups = (R.find(R.propEq('label', label), groupings) || {}).groups
       const values = {
         groups,
         label

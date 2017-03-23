@@ -43,7 +43,7 @@ const validate = values => {
   if (groupsErrors.length) {
     errors.groups = groupsErrors
   }
-  console.log('validate, errors', errors)
+  // console.log('validate, errors', errors)
   return errors
 }
 
@@ -61,7 +61,7 @@ const renderGroups = ({ fields, groupsValues, table, config, meta: { touched, er
     }
     if (group.type === 'byColumn') {
       const specKey = group.columnKey
-      const spec = specKey && config.columnSpecs[specKey]
+      const spec = specKey && config.columns[specKey]
       return spec && `By ${ spec.label || specKey }` || '?'
     } else if (group.type === 'custom') {
       return group.expression || '?'
@@ -111,8 +111,8 @@ const renderGroups = ({ fields, groupsValues, table, config, meta: { touched, er
                   <div>
                     <Field name={`${group}.columnKey`} component={SelectField} hintText="Choose which column">
                       {
-                        R.keys(config.columnSpecs).map(specKey => {
-                          const spec = config.columnSpecs[specKey]
+                        R.keys(config.columns).map(specKey => {
+                          const spec = config.columns[specKey]
                           return <MenuItem key={specKey}
                             value={specKey}
                             primaryText={spec.label || specKey} />
@@ -176,7 +176,6 @@ class GroupsDialogAndForm extends React.Component {
           }
           <span style={{ float: 'right' }}>
             <Toggle onToggle={(e, checked) => {
-              console.log('expert', checked)
               this.setState({ expert: checked })
             }}
              label="Expert mode"
@@ -191,8 +190,6 @@ let Form = GroupsDialogAndForm
 
 Form = reduxForm({
   onSubmit: (values, dispatch, ownProps) => {
-
-console.log('onSubmit, values', values)
 
     if (values.expertGroups) {
       console.log('EXPERT', values.expertGroups)
@@ -210,19 +207,19 @@ console.log('onSubmit, values', values)
 })(Form)
 
 Form = connect((state, ownProps) => {
-  const { groupsConfig, table, open } = ownProps
+  const { table, config, groups, open } = ownProps
   const formName = getFormName(table)
   const selector = formValueSelector(formName)
   const groupsValues = selector(state, 'groups')
   const initialValues = {
-    groups: groupsConfig.groups
+    groups
   }
   return {
     groupsValues,
     initialValues,
     form: formName,
     table,
-    config: groupsConfig,
+    config,
     open
   }
 })(Form)
@@ -232,19 +229,18 @@ let GroupsState = ({ summary }) => (
 )
 
 GroupsState = connect((state, ownProps) => {
-  const { groupsConfig } = ownProps
-  const summary = groupsConfig.label || 'Grouping'
   return {
-    summary
+    summary: '(summary)' // TODO
   }
 })(GroupsState)
 
-export const GroupsDialog = ({ open, done, table, groupsConfig }) => {
+export const GroupsDialog = ({ open, done, table, config, groups }) => {
   if (!open) { return null }
   return (
     <Form
       table={table}
-      groupsConfig={groupsConfig}
+      config={config}
+      groups={groups}
       open={open}
       done={done}
     />

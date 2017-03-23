@@ -100,12 +100,12 @@ const GroupRow1 = ({ config, data, group, groups, onOpen, isOpen, level }) => {
 
   // TODO: the idea is that we may want to choose which aggregations we want to
   // see on a group... then a group would have to know a list of aggregation keys...
-  // for now, we are grabbing all keys from config.aggregationSpecs
-  const groupAggregations = R.keys(config.aggregationSpecs)
+  // for now, we are grabbing all keys from config.aggregations
+  const groupAggregations = R.keys(config.aggregations)
 
   const aggregations = (groupAggregations || []).map(agg => {
-    const spec = config.aggregationSpecs[agg]
-    if (!spec) throw new Error(`${ agg } not found in aggregationSpecs`);
+    const spec = config.aggregations[agg]
+    if (!spec) throw new Error(`${ agg } not found in aggregations`);
     return {
       label: spec.label,
       value: spec.f(rowsFromData(groups, data)),
@@ -156,7 +156,7 @@ const GroupRow2 = ({ config, data, group, groups, level }) => {
   return (
     <TableRow style={styles.tableRowColumn}>
       <TableRowColumn style={{ paddingLeft: 0, paddingRight: 0 }}
-        colSpan={R.keys(config.aggregationSpecs).length + 2}>
+        colSpan={R.keys(config.aggregations).length + 2}>
 
         <DrilldownRecursive level={level+1} {...{ config, data: data.values, groups }} />
 
@@ -193,8 +193,8 @@ class DrilldownRecursive extends React.Component {
                     Actions
                   </TableHeaderColumn>
                   {
-                    (R.keys(config.aggregationSpecs) || []).map((agg, ix) => {
-                      const spec = config.aggregationSpecs[agg]
+                    (R.keys(config.aggregations) || []).map((agg, ix) => {
+                      const spec = config.aggregations[agg]
                       return (
                         <TableHeaderColumn key={ix} style={{width: spec.width}}>
                           {spec.label || agg}
@@ -234,8 +234,8 @@ class DrilldownRecursive extends React.Component {
           <TableHeader displaySelectAll={false} adjustForCheckbox={false}>
             <TableRow>
               {
-                R.keys(config.columnSpecs).map(specKey => {
-                  const spec = config.columnSpecs[specKey]
+                R.keys(config.columns).map(specKey => {
+                  const spec = config.columns[specKey]
                   return (
                     <TableHeaderColumn key={specKey}>
                       { spec.label || specKey }
@@ -250,8 +250,8 @@ class DrilldownRecursive extends React.Component {
               sortedData.map((row, index) => (
                 <TableRow key={index} style={styles.tableRowColumn}>
                 {
-                  R.keys(config.columnSpecs).map(specKey => {
-                    const spec = config.columnSpecs[specKey]
+                  R.keys(config.columns).map(specKey => {
+                    const spec = config.columns[specKey]
                     const value = R.path(specKey.split('.'), row)
                     return (
                       <TableRowColumn key={specKey} style={styles.tableRowColumn}>
@@ -271,14 +271,14 @@ class DrilldownRecursive extends React.Component {
 }
 DrilldownRecursive.propTypes = {
   config: React.PropTypes.any.isRequired,
-
 }
 
 import TableOptionsMenu from './table-options-menu'
 
-let GroupableDatatable = ({ groupsSpec, rows, config, table, title }) => {
+let GroupableDatatable = ({ rows, config, currentConfig, table, title }) => {
 
-  const { groups } = groupsSpec
+  const { groups } = currentConfig
+
   const data = groups.reduce((d, group) => {
     const sort = group.sort === 'descending' ? d3a.descending : d3a.ascending
     let result
@@ -300,30 +300,43 @@ let GroupableDatatable = ({ groupsSpec, rows, config, table, title }) => {
       <Subheader>
         {title || 'Datatable'}
         <span style={{ float: 'right' }}>
-          <TableOptionsMenu {...{ groupsSpec, config, groups, data, table }} />
+          <TableOptionsMenu {...{ currentConfig, config, data, table }} />
         </span>
       </Subheader>
-      <DrilldownRecursive isRoot={true} level={0} {...{ config, groups, data }} />
+      <DrilldownRecursive
+        isRoot={true} level={0}
+        config={R.merge(R.omit([ 'groupings' ], config), currentConfig)}
+        {...{ groups, data }}
+      />
 
     </div>
   )
 }
 
 GroupableDatatable = connect((state, ownProps) => {
-  const { namespace, rows, table } = ownProps
+
+  const {
+    namespace, rows, table, sort, config, initialGroups
+  } = ownProps
+
   const key = namespace || 'datatable'
-  const groupsSpec = state[key].tables[table]
+
+  const currentConfig = (state[key].tables || {})[table] || { groups: initialGroups || [] }
+
   return {
-    // TODO: groupsSpec and config are the same value??
-    rows, groupsSpec, config: state[key].tables[table], table
+    rows,
+    currentConfig
   }
 })(GroupableDatatable)
 
 GroupableDatatable.propTypes = {
   namespace: React.PropTypes.string,
   table: React.PropTypes.string.isRequired,
-  rows: React.PropTypes.any.isRequired,
-  title: React.PropTypes.any
+  rows: React.PropTypes.array.isRequired,
+  title: React.PropTypes.any,
+  config: React.PropTypes.object.isRequired,
+  initialGroups: React.PropTypes.array,
+  sort: React.PropTypes.func
 }
 
 export default GroupableDatatable
