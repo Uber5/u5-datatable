@@ -6,6 +6,11 @@ import Dialog from 'material-ui/Dialog'
 import IconButton from 'material-ui/IconButton'
 import IconMenu from 'material-ui/IconMenu'
 import MoreVertIcon from 'material-ui/svg-icons/navigation/more-vert'
+import GroupIcon from 'material-ui/svg-icons/action/list'
+import ClearGroupsIcon from 'material-ui/svg-icons/communication/clear-all'
+import DownloadIcon from 'material-ui/svg-icons/file/file-download'
+import ExpertIcon from 'material-ui/svg-icons/action/build'
+import CustomSettingsIcon from 'material-ui/svg-icons/action/settings'
 import ArrowDropRight from 'material-ui/svg-icons/navigation-arrow-drop-right'
 import Divider from 'material-ui/Divider'
 import {
@@ -47,7 +52,9 @@ class TableOptionsMenu extends React.Component {
       groupsItems.push(<Divider />)
     }
     groupsItems.push(
-      <MenuItem value="_custom" primaryText="Custom"
+      <MenuItem value="_custom"
+        primaryText="Custom"
+        leftIcon={<CustomSettingsIcon />}
         onClick={e => this.setState({ customOpen: true })}
       />
     )
@@ -59,15 +66,22 @@ class TableOptionsMenu extends React.Component {
         >
           <MenuItem primaryText="Group by"
             rightIcon={<ArrowDropRight />}
+            leftIcon={<GroupIcon />}
             menuItems={groupsItems}
           />
-          <MenuItem onTouchTap={this.clearGroups} primaryText="Clear groups" />
+          <MenuItem
+            onTouchTap={this.clearGroups}
+            primaryText="Clear groups"
+            leftIcon={<ClearGroupsIcon />}
+          />
           <Divider />
           <MenuItem
             primaryText="Export"
+            leftIcon={<DownloadIcon />}
           />
           <Divider />
           <MenuItem onTouchTap={this.handleRawOpen}
+            leftIcon={<ExpertIcon />}
             primaryText="Expert view"
           />
         </IconMenu>
