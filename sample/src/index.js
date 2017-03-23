@@ -27,10 +27,13 @@ const store = createStore(
 )
 
 const peopleRows = [
-  { firstName: 'Joe', lastName: 'Soap', details: { dob: new Date(1980, 5, 13) } },
-  { firstName: 'Jane', lastName: 'Soap', details: { dob: new Date(1983, 2, 1) } },
-  { firstName: 'Anne', lastName: 'Schneier', details: { dob: new Date(1973, 2, 1) } },
+  { _id: 1, firstName: 'Joe', lastName: 'Soap', details: { dob: new Date(1980, 5, 13) } },
+  { _id: 2, firstName: 'Jane', lastName: 'Soap', details: { dob: new Date(1983, 2, 1) } },
+  { _id: 3, firstName: 'Anne', lastName: 'Schneier', details: { dob: new Date(1973, 2, 1) } },
 ]
+
+import DetailsIcon from 'material-ui/svg-icons/content/create'
+import DeleteIcon from 'material-ui/svg-icons/action/delete'
 
 const columns = {
   firstName: {
@@ -45,8 +48,21 @@ const columns = {
   'details.dob': {
     label: 'Birth date',
     format: v => v.details.dob && v.details.dob.toLocaleDateString()
+  },
+  'actions': {
+    label: 'Actions',
+    format: v => (<div>
+      <DetailsIcon style={{ cursor: 'pointer' }}
+        onClick={e => { e.stopPropagation(); alert(`Details of person ${ v._id } here...`)}}
+      />
+      <DeleteIcon style={{ cursor: 'pointer' }}
+        onClick={e => {e.stopPropagation(); alert(`Should delete person ${ v._id }`)}}
+      />
+    </div>)
   }
 }
+
+import MapIcon from 'material-ui/svg-icons/maps/place'
 
 const aggregations = {
   count: {
@@ -70,6 +86,15 @@ const aggregations = {
       }
     },
     width: 50
+  },
+  actions: {
+    label: 'Actions',
+    f: (rows, group) => rows,
+    component: ({ value, group }) => (
+      <div>
+        <MapIcon onClick={() => console.log('here be map...', value, group)} />
+      </div>
+    )
   }
 }
 

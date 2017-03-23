@@ -38,15 +38,6 @@ const styles = {
     height: 24,
     cursor: 'pointer',
   },
-  actionsRowColumn: {
-    width: 24,
-    height: 24,
-    cursor: 'pointer',
-  },
-  actionsRowColumnHeader: {
-    width: 24,
-    height: 24,
-  }
 }
 
 // as data is nested, we have to 'collect' the rows from the lowest level,
@@ -61,41 +52,6 @@ const rowsFromData = (groups, data) => {
   }
 }
 
-class PopoverMapButton extends React.Component {
-  state = { open: false }
-  close = () => {
-    this.setState({ open: false })
-  }
-  open = () => {
-    this.setState({ open: true })
-  }
-  render() {
-    const { config, rows } = this.props
-    const { open } = this.state
-
-    return (
-      <div>
-        <MapIcon onClick={this.open}/>
-        <Popover style={{position: 'absolute', top: 0, bottom: 0, left: 0, right: 0 }} open={open} onRequestClose={this.close}>
-          <DrilldownMap rows={rows} config={config} />
-          <div style={{ position: 'fixed', top: 0, right: 0, zIndex: 10000 }}>
-            <FloatingActionButton mini={true} onClick={this.close}>
-              <CloseIcon />
-            </FloatingActionButton>
-          </div>
-        </Popover>
-      </div>
-    )
-  }
-}
-
-const GroupContextMenu = ({ config, data, group, groups, level  }) => {
-
-  return (
-    <PopoverMapButton config={config} rows={rowsFromData(groups, data)}/>
-  )
-}
-
 const GroupRow1 = ({ config, data, group, groups, onOpen, isOpen, level }) => {
 
   // TODO: the idea is that we may want to choose which aggregations we want to
@@ -108,7 +64,7 @@ const GroupRow1 = ({ config, data, group, groups, onOpen, isOpen, level }) => {
     if (!spec) throw new Error(`${ agg } not found in aggregations`);
     return {
       label: spec.label,
-      value: spec.f(rowsFromData(groups, data)),
+      value: spec.f(rowsFromData(groups, data), group),
       spec
     }
   })
@@ -133,9 +89,6 @@ const GroupRow1 = ({ config, data, group, groups, onOpen, isOpen, level }) => {
             : ([group.label, data.key].join(' '))
         }
       </TableRowColumn>
-      <TableRowColumn style={styles.actionsRowColumn}>
-        <GroupContextMenu {...{ config, data, group, groups, level }}/>
-      </TableRowColumn>
       {
         aggregations.map((agg, ix) => {
           return (
@@ -143,7 +96,7 @@ const GroupRow1 = ({ config, data, group, groups, onOpen, isOpen, level }) => {
               styles.tableRowColumn,
               { width: agg.spec.width}
             )}>
-              {agg.spec.component ? agg.spec.component({ value: agg.value }) : `${ agg.value }`}
+              {agg.spec.component ? agg.spec.component({ value: agg.value, group }) : `${ agg.value }`}
             </TableRowColumn>
           )
         })
@@ -156,7 +109,7 @@ const GroupRow2 = ({ config, data, group, groups, level }) => {
   return (
     <TableRow style={styles.tableRowColumn}>
       <TableRowColumn style={{ paddingLeft: 0, paddingRight: 0 }}
-        colSpan={R.keys(config.aggregations).length + 2}>
+        colSpan={R.keys(config.aggregations).length + 1}>
 
         <DrilldownRecursive level={level+1} {...{ config, data: data.values, groups }} />
 
@@ -188,9 +141,6 @@ class DrilldownRecursive extends React.Component {
                 <TableRow>
                   <TableHeaderColumn style={{ width: config.groupColumnWidth }}>
                     Group
-                  </TableHeaderColumn>
-                  <TableHeaderColumn style={styles.actionsRowColumnHeader}>
-                    Actions
                   </TableHeaderColumn>
                   {
                     (R.keys(config.aggregations) || []).map((agg, ix) => {
