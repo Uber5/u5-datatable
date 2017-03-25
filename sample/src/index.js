@@ -85,7 +85,7 @@ const aggregations = {
         }
       }
     },
-    width: 50
+    width: 130
   },
   actions: {
     label: 'Actions',

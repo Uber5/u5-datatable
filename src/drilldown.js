@@ -21,7 +21,7 @@ import * as d3a from 'd3-array'
 import * as d3ScaleChromatic from 'd3-scale-chromatic'
 import * as R from 'ramda'
 
-import DrilldownMap from './map'
+import { SELECTION_CHANGED } from './actions'
 
 const styles = {
   tab: {
@@ -40,7 +40,7 @@ const styles = {
 // so that we can e.g. run the aggregation function on the data
 const rowsFromData = (groups, data) => {
   if (!groups.length) {
-    return data.values
+    return R.map(R.prop('row'), data.values)
   } else {
     return data.values.reduce((res, data) => {
       return R.concat(res, rowsFromData(R.tail(groups), data))
@@ -101,13 +101,14 @@ const GroupRow1 = ({ config, data, group, groups, onOpen, isOpen, level }) => {
   )
 }
 
-const GroupRow2 = ({ config, data, group, groups, level }) => {
+const GroupRow2 = ({ config, data, group, groups, level, dataKey, keys }) => {
+  // console.log('GroupRow2', level, keys)
   return (
     <TableRow style={styles.tableRowColumn}>
       <TableRowColumn style={{ paddingLeft: 0, paddingRight: 0 }}
         colSpan={R.keys(config.aggregations).length + 1}>
 
-        <DrilldownRecursive level={level+1} {...{ config, data: data.values, groups }} />
+        <DrilldownRecursive level={level+1} {...{ config, keys, data: data.values, groups }} />
 
       </TableRowColumn>
     </TableRow>
@@ -122,12 +123,12 @@ class DrilldownRecursive extends React.Component {
   }
 
   render() {
-    const { config, data, groups, isRoot, level } = this.props
+    const { config, data, groups, isRoot, level, keys } = this.props
+    const { selectRows } = config
     const { open } = this.state
 
     if (groups.length) {
       // render next group's data as rows
-
       return (
         <div>
           <Table wrapperStyle={{ minWidth: config.tableMinWidth }}>
@@ -163,7 +164,9 @@ class DrilldownRecursive extends React.Component {
                     }}
                   />
                 ) : (open[(ix-1)/2] &&
-                  <GroupRow2 level={level} key={ix} data={group} config={config}
+                  <GroupRow2 level={level} key={ix}
+                    keys={R.append(group.key, keys)}
+                    dataKey={group.key} data={group} config={config}
                     group={R.head(groups)} groups={R.tail(groups)}
                   />
                 ))
@@ -174,10 +177,30 @@ class DrilldownRecursive extends React.Component {
       )
     } else {
       // render rows
-      const sortedData = config.sort ? config.sort(data) : data
+      const rows = R.map(e => e.row, data)
+      const sortedData = config.sort ? config.sort(rows) : rows
       return (
-        <Table>
-          <TableHeader displaySelectAll={false} adjustForCheckbox={false}>
+        <Table
+          multiSelectable={true}
+          allRowsSelected={R.all(e => R.contains(e.ix, config.selected || []), data)}
+          onRowSelection={which => {
+            if (which === 'all') {
+              selectRows({ select: R.map(e => e.ix, data), unselect: [] })
+            } else if (which === 'none') {
+              selectRows({ select: [], unselect: R.map(e => e.ix, data) })
+            } else {
+              selectRows({
+                select: R.map(ix => data[ix].ix, which),
+                unselect: R.pipe(
+                  R.times(R.identity), // [ 0, 1, 2, 3, ..., data.length-1 ]
+                  R.filter(ix => R.not(R.contains(ix, which))),
+                  R.map(ix => data[ix].ix)
+                )(data.length)
+              })
+            }
+          }}
+        >
+          <TableHeader displaySelectAll={true} adjustForCheckbox={true}>
             <TableRow>
               {
                 R.keys(config.columns).map(specKey => {
@@ -193,21 +216,27 @@ class DrilldownRecursive extends React.Component {
           </TableHeader>
           <TableBody>
             {
-              sortedData.map((row, index) => (
-                <TableRow key={index} style={styles.tableRowColumn}>
-                {
-                  R.keys(config.columns).map(specKey => {
-                    const spec = config.columns[specKey]
-                    const value = R.path(specKey.split('.'), row)
-                    return (
-                      <TableRowColumn key={specKey} style={styles.tableRowColumn}>
-                        {spec.format ? spec.format(row) : `${ value }` }
-                      </TableRowColumn>
-                    )
-                  })
-                }
-                </TableRow>
-              ))
+              sortedData.map((row, index) => {
+                // selected bug: https://github.com/callemall/material-ui/issues/6006
+                const selected = R.contains(data[index].ix, config.selected || [])
+                return (
+                  <TableRow
+                    selected={selected}
+                    key={'' + index + selected} style={styles.tableRowColumn}>
+                  {
+                    R.keys(config.columns).map(specKey => {
+                      const spec = config.columns[specKey]
+                      const value = R.path(specKey.split('.'), row)
+                      return (
+                        <TableRowColumn key={specKey} style={styles.tableRowColumn}>
+                          {spec.format ? spec.format(row) : `${ value }` }
+                        </TableRowColumn>
+                      )
+                    })
+                  }
+                  </TableRow>
+                )
+              })
             }
           </TableBody>
         </Table>
@@ -221,7 +250,11 @@ DrilldownRecursive.propTypes = {
 
 import TableOptionsMenu from './table-options-menu'
 
-let GroupableDatatable = ({ rows, config, currentConfig, table, title }) => {
+import RowsToolbar from './rows-toolbar'
+
+let GroupableDatatable = ({
+  rows, config, currentConfig, table, title, selectRows, selectedRowsToolbar
+}) => {
 
   const { groups } = currentConfig
 
@@ -229,29 +262,51 @@ let GroupableDatatable = ({ rows, config, currentConfig, table, title }) => {
     const sort = group.sort === 'descending' ? d3a.descending : d3a.ascending
     let result
     if (group.type === 'byColumn') {
-      result = d.key(R.path(group.columnKey.split('.'))).sortKeys(sort)
+      const keys = [ 'row' ]
+      keys.push(group.columnKey.split('.'))
+      result = d.key(R.path(keys)).sortKeys(sort)
     } else if (group.type === 'custom') {
       const moment = require('moment')
       result = d.key(value => {
-        const v = value
+        const v = value.row
         const r = eval(`${ group.expression }`)
         return r
       }).sortKeys(sort)
     }
     return result
-  }, d3c.nest()).entries(rows)
+  }, d3c.nest()).entries(R.addIndex(R.map)((row, ix) => ({ row, ix }), rows))
+
+  // console.log('data', data)
+
+  const selected = currentConfig.selected || []
 
   return (
     <div>
-      <Subheader>
-        {title || 'Datatable'}
-        <span style={{ float: 'right' }}>
-          <TableOptionsMenu {...{ currentConfig, config, data, table }} />
-        </span>
-      </Subheader>
+      {
+        selected.length === 0 &&
+        <Subheader>
+          {title || 'Datatable'}
+          <span style={{ float: 'right' }}>
+            <TableOptionsMenu {...{ currentConfig, config, data, table }} />
+          </span>
+        </Subheader>
+      }
+      {
+        selected.length > 0 &&
+        (selectedRowsToolbar
+          ? selectedRowsToolbar({ selected })
+          : <RowsToolbar selected={selected} />)
+      }
+
       <DrilldownRecursive
-        isRoot={true} level={0}
-        config={R.merge(R.omit([ 'groupings' ], config), currentConfig)}
+        isRoot={true} level={0} keys={[]}
+        config={R.merge(
+          R.omit([ 'groupings' ], config),
+          R.merge(
+            currentConfig,
+            { selectRows }
+          )
+        )}
         {...{ groups, data }}
       />
 
@@ -267,11 +322,26 @@ GroupableDatatable = connect((state, ownProps) => {
 
   const key = namespace || 'datatable'
 
-  const currentConfig = (state[key].tables || {})[table] || { groups: initialGroups || [] }
+  const currentConfig = R.merge(
+    {
+      groups: initialGroups || []
+    },
+    (state[key].tables || {})[table]
+  )
 
   return {
     rows,
     currentConfig
+  }
+}, (dispatch, ownProps) => {
+  const { table } = ownProps
+  return {
+    selectRows: ({ select, unselect }) => dispatch({
+      type: SELECTION_CHANGED,
+      table,
+      select,
+      unselect
+    })
   }
 })(GroupableDatatable)
 
