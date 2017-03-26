@@ -214,15 +214,14 @@ class DrilldownRecursive extends React.Component {
               }
             </TableRow>
           </TableHeader>
-          <TableBody>
+          <TableBody deselectOnClickaway={false}>
             {
               sortedData.map((row, index) => {
                 // selected bug: https://github.com/callemall/material-ui/issues/6006
                 const selected = R.contains(data[index].ix, config.selected || [])
                 return (
                   <TableRow
-                    selected={selected}
-                    key={'' + index + selected} style={styles.tableRowColumn}>
+                    key={'' + data[index].ix + selected} style={styles.tableRowColumn}>
                   {
                     R.keys(config.columns).map(specKey => {
                       const spec = config.columns[specKey]
@@ -253,10 +252,13 @@ import TableOptionsMenu from './table-options-menu'
 import RowsToolbar from './rows-toolbar'
 
 let GroupableDatatable = ({
-  rows, config, currentConfig, table, title, selectRows, selectedRowsToolbar
+  rows, config, currentConfig, table, title, selectRows,
+  clearSelected, selectedRowsToolbar
 }) => {
 
   const { groups } = currentConfig
+
+  const rowsWithIndex = R.addIndex(R.map)((row, ix) => ({ row, ix }), rows)
 
   const data = groups.reduce((d, group) => {
     const sort = group.sort === 'descending' ? d3a.descending : d3a.ascending
@@ -274,11 +276,19 @@ let GroupableDatatable = ({
       }).sortKeys(sort)
     }
     return result
-  }, d3c.nest()).entries(R.addIndex(R.map)((row, ix) => ({ row, ix }), rows))
-
-  // console.log('data', data)
+  }, d3c.nest()).entries(rowsWithIndex)
 
   const selected = currentConfig.selected || []
+  const selectedRows = R.pipe(
+    R.filter(r => R.contains(r.ix, selected)),
+    R.map(R.prop('row'))
+  )(rowsWithIndex)
+
+  const toolbarProps = {
+    selected: selectedRows,
+    clearSelected,
+    config
+  }
 
   return (
     <div>
@@ -294,8 +304,8 @@ let GroupableDatatable = ({
       {
         selected.length > 0 &&
         (selectedRowsToolbar
-          ? selectedRowsToolbar({ selected })
-          : <RowsToolbar selected={selected} />)
+          ? selectedRowsToolbar(toolbarProps)
+          : <RowsToolbar {...toolbarProps} />)
       }
 
       <DrilldownRecursive
@@ -341,6 +351,11 @@ GroupableDatatable = connect((state, ownProps) => {
       table,
       select,
       unselect
+    }),
+    clearSelected: () => dispatch({
+      type: SELECTION_CHANGED,
+      table,
+      clearAll: true
     })
   }
 })(GroupableDatatable)

@@ -51,6 +51,7 @@ const columns = {
   },
   'actions': {
     label: 'Actions',
+    skipExport: true,
     format: v => (<div>
       <DetailsIcon style={{ cursor: 'pointer' }}
         onClick={e => { e.stopPropagation(); alert(`Details of person ${ v._id } here...`)}}

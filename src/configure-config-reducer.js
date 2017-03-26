@@ -21,7 +21,7 @@ export default (config: { /* TODO: no config required atm */}) => createReducer(
   [SELECTION_CHANGED]: (state, action) => {
     const { table, select, unselect } = action
     const prevTableState = (state.tables || {})[table] || {}
-    const selected = R.pipe(
+    const selected = action.clearAll ? [] : R.pipe(
       R.filter(e => !R.contains(e, unselect)),
       R.concat(select),
       R.uniq
