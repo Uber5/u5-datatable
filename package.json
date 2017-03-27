@@ -13,6 +13,10 @@
   },
   "author": "Chris Oloff <chris@uber5.com> (http://about.uber5.com/)",
   "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Uber5/u5-datatable"
+  },
   "dependencies": {
     "d3-array": "^1",
     "d3-collection": "^1",
