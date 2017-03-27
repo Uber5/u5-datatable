@@ -4,7 +4,7 @@ import {
   Table, TableBody, TableHeader, TableHeaderColumn, TableRow, TableRowColumn
 } from 'material-ui/Table'
 import Subheader from 'material-ui/Subheader'
-
+import Checkbox from 'material-ui/Checkbox'
 import Popover from 'material-ui/Popover/Popover'
 
 import MapIcon from 'material-ui/svg-icons/maps/place'
@@ -34,6 +34,10 @@ const styles = {
     height: 24,
     cursor: 'pointer',
   },
+  selectColumn: {
+    width: 24,
+    padding: 1
+  }
 }
 
 // as data is nested, we have to 'collect' the rows from the lowest level,
@@ -179,29 +183,20 @@ class DrilldownRecursive extends React.Component {
       // render rows
       const rows = R.map(e => e.row, data)
       const sortedData = config.sort ? config.sort(rows) : rows
+      const allSelected = R.all(e => R.contains(e.ix, config.selected || []), data)
+
       return (
-        <Table
-          multiSelectable={true}
-          allRowsSelected={R.all(e => R.contains(e.ix, config.selected || []), data)}
-          onRowSelection={which => {
-            if (which === 'all') {
-              selectRows({ select: R.map(e => e.ix, data), unselect: [] })
-            } else if (which === 'none') {
-              selectRows({ select: [], unselect: R.map(e => e.ix, data) })
-            } else {
-              selectRows({
-                select: R.map(ix => data[ix].ix, which),
-                unselect: R.pipe(
-                  R.times(R.identity), // [ 0, 1, 2, 3, ..., data.length-1 ]
-                  R.filter(ix => R.not(R.contains(ix, which))),
-                  R.map(ix => data[ix].ix)
-                )(data.length)
-              })
-            }
-          }}
-        >
-          <TableHeader displaySelectAll={true} adjustForCheckbox={true}>
+        <Table multiSelectable={false}>
+          <TableHeader displaySelectAll={false} adjustForCheckbox={false}>
             <TableRow>
+              <TableHeaderColumn style={styles.selectColumn}>
+                <Checkbox checked={allSelected} onCheck={(e, checked) => {
+                  selectRows({
+                    select: checked ? R.map(e => e.ix, data) : [],
+                    unselect: checked ? [] : R.map(e => e.ix, data)
+                  })
+                }}/>
+              </TableHeaderColumn>
               {
                 R.keys(config.columns).map(specKey => {
                   const spec = config.columns[specKey]
@@ -214,14 +209,21 @@ class DrilldownRecursive extends React.Component {
               }
             </TableRow>
           </TableHeader>
-          <TableBody deselectOnClickaway={false}>
+          <TableBody displayRowCheckbox={false}>
             {
               sortedData.map((row, index) => {
-                // selected bug: https://github.com/callemall/material-ui/issues/6006
                 const selected = R.contains(data[index].ix, config.selected || [])
                 return (
                   <TableRow
-                    key={'' + data[index].ix + selected} style={styles.tableRowColumn}>
+                    key={'' + data[index].ix} style={styles.tableRowColumn}>
+                    <TableRowColumn style={styles.selectColumn}>
+                      <Checkbox checked={selected} onCheck={(e, checked) => {
+                        selectRows({
+                          select: checked ? [ data[index].ix ] : [],
+                          unselect: checked ? [] : [ data[index].ix ]
+                        })
+                      }}/>
+                    </TableRowColumn>
                   {
                     R.keys(config.columns).map(specKey => {
                       const spec = config.columns[specKey]

@@ -28,7 +28,6 @@ export default class ToolbarExamplesSimple extends React.Component {
     const { selected, config } = this.props
 
     const escape = s => s.replace(/["]/g, "\\$&") // escape '"' only
-    console.log('downloadRows', selected, config)
 
     const headers = R.keys(config.columns)
     .filter(colName => config.columns[colName].skipExport !== true)
@@ -49,7 +48,6 @@ export default class ToolbarExamplesSimple extends React.Component {
     })
 
     const asCsv = R.concat([ headers ], lines ).join('\n')
-    console.log('asCsv', asCsv)
     const blob = new Blob([ asCsv ], { type: "text/csv;charset=utf-8" })
     saveAs(blob, "data.csv")
   }
