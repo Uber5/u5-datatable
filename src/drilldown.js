@@ -267,7 +267,7 @@ let GroupableDatatable = ({
     let result
     if (group.type === 'byColumn') {
       const keys = [ 'row' ]
-      keys.push(group.columnKey.split('.'))
+      group.columnKey.split('.').map(k => keys.push(k))
       result = d.key(R.path(keys)).sortKeys(sort)
     } else if (group.type === 'custom') {
       const moment = require('moment')
