@@ -273,8 +273,12 @@ let GroupableDatatable = ({
       const moment = require('moment')
       result = d.key(value => {
         const v = value.row
-        const r = eval(`${ group.expression }`)
-        return r
+        try {
+          const r = eval(`${ group.expression }`)
+          return r
+        } catch (e) {
+          return 'ERROR in expression'
+        }
       }).sortKeys(sort)
     }
     return result
