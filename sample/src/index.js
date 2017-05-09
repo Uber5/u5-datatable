@@ -52,9 +52,12 @@ const columns = {
   'actions': {
     label: 'Actions',
     skipExport: true,
-    format: v => (<div>
+    format: (v, ownProps) => (<div>
       <DetailsIcon style={{ cursor: 'pointer' }}
-        onClick={e => { e.stopPropagation(); alert(`Details of person ${ v._id } here...`)}}
+        onClick={e => { e.stopPropagation();
+          // `prop1` demonstrates how props of datatable get passed on
+          alert(`Details of person ${ v._id } here, prop1=${ ownProps.prop1 }`)
+        }}
       />
       <DeleteIcon style={{ cursor: 'pointer' }}
         onClick={e => {e.stopPropagation(); alert(`Should delete person ${ v._id }`)}}
@@ -91,9 +94,10 @@ const aggregations = {
   actions: {
     label: 'Actions',
     f: (rows, group) => rows,
-    component: ({ value, group }) => (
+    component: ({ value, group, prop1 }) => (
       <div style={{ cursor: 'pointer' }}>
-        <MapIcon onClick={() => console.log('here be map...', value, group)} />
+        <MapIcon onClick={() =>
+          console.log('here be map...', value, group, prop1)} />
       </div>
     )
   }
@@ -173,6 +177,10 @@ const App = () => <Provider store={store}>
         config={{ aggregations, columns, groupings, groupColumnWidth: 120, tableMinWidth: 450 }}
 
         initialGroups={initialGroups}
+
+        // demonstrates how props get passed through, see e.g. `actions` column
+        // and `actions` aggregation
+        prop1={42}
 
       />
     </div>

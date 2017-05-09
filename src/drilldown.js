@@ -52,7 +52,7 @@ const rowsFromData = (groups, data) => {
   }
 }
 
-const GroupRow1 = ({ config, data, group, groups, onOpen, isOpen, level }) => {
+const GroupRow1 = ({ config, data, group, groups, onOpen, isOpen, level, ownProps }) => {
 
   // TODO: the idea is that we may want to choose which aggregations we want to
   // see on a group... then a group would have to know a list of aggregation keys...
@@ -96,7 +96,7 @@ const GroupRow1 = ({ config, data, group, groups, onOpen, isOpen, level }) => {
               styles.tableRowColumn,
               { width: agg.spec.width}
             )}>
-              {agg.spec.component ? agg.spec.component({ value: agg.value, group }) : `${ agg.value }`}
+              {agg.spec.component ? agg.spec.component({ value: agg.value, group, ...ownProps }) : `${ agg.value }`}
             </TableRowColumn>
           )
         })
@@ -105,14 +105,18 @@ const GroupRow1 = ({ config, data, group, groups, onOpen, isOpen, level }) => {
   )
 }
 
-const GroupRow2 = ({ config, data, group, groups, level, dataKey, keys }) => {
+const GroupRow2 = ({ config, data, group, groups, level, dataKey, keys, ownProps }) => {
   // console.log('GroupRow2', level, keys)
   return (
     <TableRow style={styles.tableRowColumn}>
       <TableRowColumn style={{ paddingLeft: 0, paddingRight: 0 }}
         colSpan={R.keys(config.aggregations).length + 1}>
 
-        <DrilldownRecursive level={level+1} {...{ config, keys, data: data.values, groups }} />
+        <DrilldownRecursive
+          level={level+1}
+          ownProps={ownProps}
+          {...{ config, keys, data: data.values, groups }}
+        />
 
       </TableRowColumn>
     </TableRow>
@@ -127,7 +131,7 @@ class DrilldownRecursive extends React.Component {
   }
 
   render() {
-    const { config, data, groups, isRoot, level, keys } = this.props
+    const { config, data, groups, isRoot, level, keys, ownProps } = this.props
     const { selectRows } = config
     const { open } = this.state
 
@@ -166,12 +170,14 @@ class DrilldownRecursive extends React.Component {
                       this.state.open[ix/2] = !this.state.open[ix/2]
                       this.setState(this.state)
                     }}
+                    ownProps={ownProps}
                   />
                 ) : (open[(ix-1)/2] &&
                   <GroupRow2 level={level} key={ix}
                     keys={R.append(group.key, keys)}
                     dataKey={group.key} data={group} config={config}
                     group={R.head(groups)} groups={R.tail(groups)}
+                    ownProps={ownProps}
                   />
                 ))
               }
@@ -230,7 +236,7 @@ class DrilldownRecursive extends React.Component {
                       const value = R.path(specKey.split('.'), row)
                       return (
                         <TableRowColumn key={specKey} style={styles.tableRowColumn}>
-                          {spec.format ? spec.format(row) : `${ value }` }
+                          {spec.format ? spec.format(row, ownProps) : `${ value }` }
                         </TableRowColumn>
                       )
                     })
@@ -247,6 +253,7 @@ class DrilldownRecursive extends React.Component {
 }
 DrilldownRecursive.propTypes = {
   config: React.PropTypes.any.isRequired,
+  ownProps: React.PropTypes.any
 }
 
 import TableOptionsMenu from './table-options-menu'
@@ -255,7 +262,7 @@ import RowsToolbar from './rows-toolbar'
 
 let GroupableDatatable = ({
   rows, config, currentConfig, table, title, selectRows,
-  clearSelected, selectedRowsToolbar
+  clearSelected, selectedRowsToolbar, ...ownProps
 }) => {
 
   const { groups } = currentConfig
@@ -324,17 +331,18 @@ let GroupableDatatable = ({
           )
         )}
         {...{ groups, data }}
+        ownProps={ownProps}
       />
 
     </div>
   )
 }
 
-GroupableDatatable = connect((state, ownProps) => {
+GroupableDatatable = connect((state, props) => {
 
   const {
-    namespace, rows, table, sort, config, initialGroups
-  } = ownProps
+    namespace, rows, table, sort, config, initialGroups, ...ownProps
+  } = props
 
   const key = namespace || 'datatable'
 
@@ -347,10 +355,11 @@ GroupableDatatable = connect((state, ownProps) => {
 
   return {
     rows,
-    currentConfig
+    currentConfig,
+    ownProps
   }
-}, (dispatch, ownProps) => {
-  const { table } = ownProps
+}, (dispatch, props) => {
+  const { table } = props
   return {
     selectRows: ({ select, unselect }) => dispatch({
       type: SELECTION_CHANGED,
