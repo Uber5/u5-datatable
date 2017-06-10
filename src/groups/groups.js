@@ -10,7 +10,8 @@ type Aggregation = any
 
 interface Group {
   getKey(i: Item): any,
-  sort?: (GroupItem, GroupItem) => number
+  sort?: (GroupItem, GroupItem) => number,
+  aggregations?: { [string]: (Array<Item>) => any }
 }
 
 interface GroupItem {
@@ -27,6 +28,13 @@ export const validate = (
   return errors
 }
 
+const aggregate = (aggregations, items) => {
+  return keys(aggregations || {}).reduce((result, key) => {
+    result[key] = aggregations[key](items)
+    return result
+  }, {})
+}
+
 export const makeGroups = (
   items: Array<Item>,
   groups: Array<Group>
@@ -35,6 +43,7 @@ export const makeGroups = (
   if (groups.length === 0) {
     return items
   } else {
+
     const group = groups[0]
     const grouped = items.reduce((groupItems, item) => {
       const key = group.getKey(item)
@@ -49,11 +58,13 @@ export const makeGroups = (
       }
       return groupItems
     }, {})
+
     return pipe(
       keys,
       map(key => ({
         key,
-        entries: grouped[key].entries
+        entries: grouped[key].entries,
+        aggregations: aggregate(group.aggregations, grouped[key].entries)
       })),
       sort(group.sort)
     )(grouped)

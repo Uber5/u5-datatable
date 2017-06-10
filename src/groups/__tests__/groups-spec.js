@@ -22,7 +22,10 @@ describe('groups', () => {
       const groups = [
         {
           getKey: i => i.name,
-          sort: (a, b) => a.key > b.key ? 1 : (a.key < b.key ? -1 : 0)
+          sort: (a, b) => a.key > b.key ? 1 : (a.key < b.key ? -1 : 0),
+          aggregations: {
+            maxAge: items => items.reduce((maxAge, i) => i.age > maxAge ? i.age : maxAge, 0)
+          }
         }
       ]
 
@@ -39,20 +42,31 @@ describe('groups', () => {
             key: 'Bob',
             entries: [
               items[3]
-            ]
+            ],
+            aggregations: {
+              maxAge: 11
+            }
           },
           {
             key: 'Jane',
             entries: [
               items[2]
-            ]
+            ],
+            aggregations: {
+              maxAge: 44
+            }
+
           },
           {
             key: 'John',
             entries: [
               items[0],
               items[1]
-            ]
+            ],
+            aggregations: {
+              maxAge: 37
+            }
+
           }
         ])
       })
