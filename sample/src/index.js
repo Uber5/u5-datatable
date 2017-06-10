@@ -26,11 +26,23 @@ const store = createStore(
   window.__REDUX_DEVTOOLS_EXTENSION__ && window.__REDUX_DEVTOOLS_EXTENSION__()
 )
 
-const peopleRows = [
-  { _id: 1, firstName: 'Joe', lastName: 'Soap', details: { dob: new Date(1980, 5, 13) } },
-  { _id: 2, firstName: 'Jane', lastName: 'Soap', details: { dob: new Date(1983, 2, 1) } },
-  { _id: 3, firstName: 'Anne', lastName: 'Schneier', details: { dob: new Date(1973, 2, 1) } },
-]
+const firstNames = [ 'Joe', 'Jane', 'Jack', 'Jacqui' ]
+const lastNames = [ 'Soap', 'Schneier', 'Bush' ]
+const pick = n => Math.floor(Math.random() * n)
+
+const peopleRows = R.pipe(
+  R.times(R.identity),
+  R.map(i => ({
+    _id: i + 1,
+    firstName: firstNames[pick(firstNames.length)],
+    lastName: lastNames[pick(lastNames.length)],
+    details: { dob: new Date(
+      1918 + Math.floor(Math.random() * 100),
+      Math.floor(Math.random() * 12),
+      1 + Math.floor(Math.random() * 28)
+    )}
+  }))
+)(1000)
 
 import DetailsIcon from 'material-ui/svg-icons/content/create'
 import DeleteIcon from 'material-ui/svg-icons/action/delete'
@@ -151,38 +163,148 @@ const initialGroups = [
   }
 ]
 
+import 'react-virtualized/styles.css'
+import AutoSizer from 'react-virtualized/dist/commonjs/AutoSizer'
+import Table from 'react-virtualized/dist/commonjs/Table'
+import MultiGrid from 'react-virtualized/dist/commonjs/MultiGrid'
+import Column from 'react-virtualized/dist/commonjs/Table/Column'
+
+const styles = {
+  table: {
+    width: '100%'
+  },
+  column: {
+    whiteSpace: 'nowrap',
+    overflow: 'hidden'
+  }
+}
+
+const RowsView = rows => (
+  <div>
+    <AutoSizer disableHeight>
+      {({ width }) => (
+        <Table
+          style={styles.table}
+          height={300}
+          width={width}
+          headerHeight={24}
+          rowCount={peopleRows.length}
+          rowGetter={({ index }) => peopleRows[index]}
+          rowHeight={24}
+        >
+          <Column label='ID'
+            style={styles.column}
+            cellDataGetter={
+              ({ columnData, dataKey, rowData }) => rowData._id
+            }
+            dataKey='_id'
+            width={60}
+          />
+          <Column label='First name'
+            headerRenderer={({
+              label
+            }) => (
+              <div style={{ textTransform: 'none' }}>
+                {label}
+              </div>
+            )}
+            cellDataGetter={
+              ({ columnData, dataKey, rowData }) => rowData.firstName
+            }
+            dataKey='firstName'
+            width={90}
+          />
+          <Column label='Date of birth'
+            dataKey='details.dob'
+            width={90}
+            flexGrow={1}
+          />
+        </Table>
+      )}
+    </AutoSizer>
+  </div>
+)
+
+const getRowValue = (row, column) => {
+  const path = column.path.split('.')
+  const value = R.path(path, row)
+  return column.formatter ? column.formatter(value) : value
+}
+
+const MultiGridView = ({ rows, columns }) => (
+  <div>
+    <AutoSizer disableHeight>
+      {({ width }) => (
+        <MultiGrid
+          fixedColumnCount={1}
+          fixedRowCount={1}
+          columnCount={columns.length}
+          rowCount={rows.length + 1}
+          height={300}
+          style={{
+            border: '1px solid #ddd'
+          }}
+          width={width}
+          columnWidth={({ index }) => columns[index].width || 80 }
+          rowHeight={({ index }) => index === 0 ? 28 : 20}
+          cellRenderer={({
+            columnIndex, rowIndex, key, style
+          }) => {
+            if (rowIndex === 0) {
+              return (
+                <div key={key} style={R.merge(style, {
+                  height: 24,
+                  borderBottom: '1px solid #eee',
+                  borderRight: '1px solid #eee'
+                })}>
+                  <div style={{ fontWeight: 700, }}>
+                    {columns[columnIndex].label}
+                  </div>
+                </div>
+              )
+            } else {
+              const row = rows[rowIndex - 1]
+              const column = columns[columnIndex]
+              const value = getRowValue(row, column)
+              const content = <div>{value}</div>
+              return (
+                <div key={key} style={R.merge(style, {
+                  borderBottom: '1px solid #eee',
+                  borderRight: '1px solid #eee'
+                })}>
+                  {content}
+                </div>
+              )
+            }
+          }}
+        />
+      )}
+    </AutoSizer>
+  </div>
+)
+
 const App = () => <Provider store={store}>
   <MuiThemeProvider>
     <div>
       <h1>Datatable Demo</h1>
-      <Datatable
-        title="Example People"
 
-        /** the `table` tells the datatable where to store config chosen by the
-         *  user.
-         */
-        table="people"
+      <MultiGridView rows={peopleRows} columns={[
+        { label: 'Id', path: '_id', width: 32, },
+        { label: 'First name', path: 'firstName' },
+        { label: 'Last name', path: 'lastName' },
+        {
+          label: 'Date of birth',
+          path: 'details.dob',
+          width: 120,
+          formatter: v => v.toLocaleDateString() }
+      ]} />
 
-        rows={peopleRows}
-
-        /**
-         * specify a sort function, which takes an array of rows as input.
-         * Here, we use ramda to create such a function for us.
-         */
-        sort={R.sortWith([
-          R.ascend(R.prop('lastName')),
-          R.ascend(R.prop('firstName'))
-        ])}
-
-        config={{ aggregations, columns, groupings, groupColumnWidth: 120, tableMinWidth: 450 }}
-
-        initialGroups={initialGroups}
-
-        // demonstrates how props get passed through, see e.g. `actions` column
-        // and `actions` aggregation
-        prop1={42}
-
+      <RowsView
+        header={() => <p>this is a header</p>}
+        numRows={peopleRows.length}
+        renderRow={i => <p>This is row {i}</p>}
       />
+
     </div>
   </MuiThemeProvider>
 </Provider>

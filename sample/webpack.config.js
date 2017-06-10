@@ -18,6 +18,11 @@ module.exports = {
   module: {
     loaders: [
       {
+        test: /\.css$/,
+        loaders: [ 'style', 'css' ],
+        // include: path.join(__dirname, 'src')
+      },
+      {
         test: /\.js$/,
         exclude: /(node_modules|bower_components)/,
         loader: 'babel',
