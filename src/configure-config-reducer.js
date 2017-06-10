@@ -1,4 +1,3 @@
-//@flow
 import * as R from 'ramda'
 
 import { GROUPS_CHANGED, SELECTION_CHANGED } from './actions'

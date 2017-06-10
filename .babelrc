@@ -3,6 +3,7 @@
     "transform-flow-strip-types"
   ],
   "presets": [
+    "flow",
     "es2015",
     "stage-2",
     "react"
