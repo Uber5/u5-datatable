@@ -1,5 +1,9 @@
 // @flow
 
+import {
+  keys, map, pipe, sort
+} from 'ramda'
+
 type Item = any
 
 type Aggregation = any
@@ -31,8 +35,28 @@ export const makeGroups = (
   if (groups.length === 0) {
     return items
   } else {
-    // return items.reduce(())
-    return [] // TODO
+    const group = groups[0]
+    const grouped = items.reduce((groupItems, item) => {
+      const key = group.getKey(item)
+      if (groupItems[key]) {
+        groupItems[key].entries.push(item)
+      } else {
+        groupItems[key] = {
+          entries: [ item ],
+          key,
+          aggregations: {}
+        }
+      }
+      return groupItems
+    }, {})
+    return pipe(
+      keys,
+      map(key => ({
+        key,
+        entries: grouped[key].entries
+      })),
+      sort(group.sort)
+    )(grouped)
   }
 
 }

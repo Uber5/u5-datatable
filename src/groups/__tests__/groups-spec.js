@@ -1,7 +1,5 @@
 //@flow
 
-declare var jest: any;
-
 import { makeGroups } from '../groups'
 
 describe('groups', () => {
@@ -24,7 +22,7 @@ describe('groups', () => {
       const groups = [
         {
           getKey: i => i.name,
-          sort: (a, b) => a.key.toString() - b.key.toString()
+          sort: (a, b) => a.key > b.key ? 1 : (a.key < b.key ? -1 : 0)
         }
       ]
 
