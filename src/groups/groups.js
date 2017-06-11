@@ -1,14 +1,14 @@
 // @flow
 
 import {
-  keys, map, pipe, sort
+  keys, map, pipe, sort, tail
 } from 'ramda'
 
-type Item = any
+export type Item = any
 
 type Aggregation = any
 
-interface Group {
+export interface Group {
   getKey(i: Item): any,
   sort?: (GroupItem, GroupItem) => number,
   aggregations?: { [string]: (Array<Item>) => any }
@@ -29,7 +29,8 @@ export const validate = (
 }
 
 const aggregate = (aggregations, items) => {
-  return keys(aggregations || {}).reduce((result, key) => {
+  return keys(aggregations).reduce((result, key) => {
+    // $FlowFixMe
     result[key] = aggregations[key](items)
     return result
   }, {})
@@ -63,7 +64,7 @@ export const makeGroups = (
       keys,
       map(key => ({
         key,
-        entries: grouped[key].entries,
+        entries: makeGroups(grouped[key].entries, tail(groups)),
         aggregations: aggregate(group.aggregations, grouped[key].entries)
       })),
       sort(group.sort)

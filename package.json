@@ -9,6 +9,7 @@
     "prepublish": "npm run clean && npm run build",
     "flow": "flow",
     "test": "flow && jest",
+    "coverage": "jest --coverage",
     "clean": "rimraf dist",
     "sample": "webpack-dev-server --config ./sample/webpack.config.js"
   },
