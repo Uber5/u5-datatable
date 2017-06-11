@@ -286,9 +286,20 @@ const MultiGridView = ({ rows, columns }) => (
   </div>
 )
 
-class ColumnConfigurator extends React.Component {
+const ColumnConfigurator = ({ column, index, onDelete }) => (
+  <span>
+    { JSON.stringify(column) }
+    <button onClick={() => onDelete(index)}>Remove</button>
+  </span>
+)
+
+class ColumnsConfigurator extends React.Component {
   state = {
     isOpen: false
+  }
+  onDelete = ix => {
+    console.log('onDelete', ix)
+    this.props.onChange(R.remove(ix, 1, this.props.columns))
   }
   render() {
     const { columns, onChange } = this.props
@@ -299,10 +310,17 @@ class ColumnConfigurator extends React.Component {
           Columns
         </button>
         { isOpen &&
-          <span>
-            configure columns..., n={columns.length}
-            <button onClick={() => onChange(R.tail(columns))}>Remove first columns</button>
-          </span>
+          <ol>
+            { columns.map((col, ix) => (
+              <li key={ix}>
+                <ColumnConfigurator
+                  index={ix}
+                  column={col}
+                  onDelete={this.onDelete}
+                />
+              </li>
+            ))}
+          </ol>
         }
       </div>
     )
@@ -322,7 +340,7 @@ const config = ({
     render() {
       const { columns } = this.state
       return <div>
-        <ColumnConfigurator
+        <ColumnsConfigurator
           columns={columns}
           onChange={newColumns => this.setState({ columns: newColumns })}
         />
