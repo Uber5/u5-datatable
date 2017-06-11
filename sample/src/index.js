@@ -36,12 +36,15 @@ const peopleRows = R.pipe(
     _id: i + 1,
     firstName: firstNames[pick(firstNames.length)],
     lastName: lastNames[pick(lastNames.length)],
-    details: { dob: new Date(
-      1918 + Math.floor(Math.random() * 100),
-      Math.floor(Math.random() * 12),
-      1 + Math.floor(Math.random() * 28)
-    )}
-  }))
+    details: {
+      dob: new Date(
+        1918 + Math.floor(Math.random() * 100),
+        Math.floor(Math.random() * 12),
+        1 + Math.floor(Math.random() * 28)
+      ),
+      income: Math.floor(800 + Math.random() * 2000)
+    }
+  })),
 )(1000)
 
 import DetailsIcon from 'material-ui/svg-icons/content/create'
@@ -283,21 +286,88 @@ const MultiGridView = ({ rows, columns }) => (
   </div>
 )
 
+class ColumnConfigurator extends React.Component {
+  state = {
+    isOpen: false
+  }
+  render() {
+    const { columns, onChange } = this.props
+    const { isOpen } = this.state
+    return (
+      <div>
+        <button onClick={() => this.setState({ isOpen: !isOpen })}>
+          Columns
+        </button>
+        { isOpen &&
+          <span>
+            configure columns..., n={columns.length}
+            <button onClick={() => onChange(R.tail(columns))}>Remove first columns</button>
+          </span>
+        }
+      </div>
+    )
+  }
+}
+
+const config = ({
+  columns,
+  moreConfig // TODO, groups? sorting? filters?
+}) => Configurable => props => {
+
+  class Config extends React.Component {
+    state = {
+      columns
+    }
+
+    render() {
+      const { columns } = this.state
+      return <div>
+        <ColumnConfigurator
+          columns={columns}
+          onChange={newColumns => this.setState({ columns: newColumns })}
+        />
+        <Configurable
+          configuration={{
+            columns
+          }}
+          {...props}
+        />
+      </div>
+    }
+  }
+
+  return <Config />
+}
+
+const MyGrid = config({
+  columns: [
+    { label: 'Id', path: '_id', width: 32, },
+    { label: 'First name', path: 'firstName' },
+    { label: 'Last name', path: 'lastName' },
+    {
+      label: 'Date of birth',
+      path: 'details.dob',
+      width: 120,
+      formatter: v => v.toLocaleDateString()
+    },
+    {
+      label: 'Income',
+      path: 'details.income'
+    }
+  ]
+})(({ configuration }) => (
+  <MultiGridView
+    rows={peopleRows}
+    columns={configuration.columns}
+  />
+))
+
 const App = () => <Provider store={store}>
   <MuiThemeProvider>
     <div>
       <h1>Datatable Demo</h1>
 
-      <MultiGridView rows={peopleRows} columns={[
-        { label: 'Id', path: '_id', width: 32, },
-        { label: 'First name', path: 'firstName' },
-        { label: 'Last name', path: 'lastName' },
-        {
-          label: 'Date of birth',
-          path: 'details.dob',
-          width: 120,
-          formatter: v => v.toLocaleDateString() }
-      ]} />
+      <MyGrid />
 
       <RowsView
         header={() => <p>this is a header</p>}

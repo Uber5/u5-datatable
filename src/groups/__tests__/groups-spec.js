@@ -104,7 +104,7 @@ describe('groups', () => {
         { name: 'Bob', age: 11, details: { gender: 'm' } },
       ]
 
-      it('produces nested groupItems', () => {
+      it('creates nested groupItems', () => {
         expect(makeGroups(items, groups)).toEqual([
           {
             key: 'f',
