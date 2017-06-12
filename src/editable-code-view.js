@@ -26,7 +26,7 @@ export class EditableCodeView extends React.Component {
         presets: [ 'es2015', 'stage-2', 'react' ],
       })
       const { code, ast } = transformed
-      this.setState({ feedback: null })
+      this.setState({ feedback: undefined })
       onChange(newCode)
     } catch(e) {
       this.setState({

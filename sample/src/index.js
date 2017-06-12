@@ -234,9 +234,27 @@ const getRowValue = (row, column) => {
   const formatter = column.formatter ? column.formatter : v => v
   const formatted = (value => {
     try {
-      const raw = formatter(value)
+      const context = {
+        React,
+        out: '',
+        value
+      }
+      formatter.call(undefined, context)
+
+      const raw = typeof(context.out) === 'function'
+        ? context.out.call(undefined, undefined)
+        : context.out
+
       if (!raw) return ''
-      return raw.toString()
+      if (React.isValidElement(raw)) {
+        return raw
+      } else if (typeof raw === 'string') {
+        return raw
+      } else if (typeof raw === 'object') {
+        return <span>data...</span> // TODO: should have pop-out JSON view?
+      } else {
+        return '' + raw // should be primitive types, e.g. number
+      }
     } catch (e) {
       return <a href="#" onClick={() => alert(e.toString())}>Error!</a>
     }
@@ -308,7 +326,7 @@ const MyGrid = config({
       label: 'Date of birth',
       path: 'details.dob',
       width: 120,
-      formatter: 'v => v.toLocaleDateString()'
+      formatter: 'out = value.toLocaleDateString()'
     },
     {
       label: 'Income',
