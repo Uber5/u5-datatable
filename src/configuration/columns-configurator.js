@@ -2,6 +2,11 @@ import React from 'react'
 import JSONTree from 'react-json-tree'
 import * as R from 'ramda'
 
+import AutoSizer from 'react-virtualized/dist/commonjs/AutoSizer'
+import Table from 'react-virtualized/dist/commonjs/Table'
+import Column from 'react-virtualized/dist/commonjs/Table/Column'
+import WindowScroller from 'react-virtualized/dist/commonjs/WindowScroller'
+
 import { EditableCodeView } from '../editable-code-view'
 
 class JSONEditableText extends React.Component {
@@ -58,6 +63,67 @@ const ColumnConfigurator = ({ column, index, onDelete, onChange }) => (
   </span>
 )
 
+const TableOfColumns = ({ columns, onChangeColumn }) => (
+  <AutoSizer disableHeight>
+    {({ width }) => (
+      <Table
+        headerHeight={24}
+        height={400}
+        autoHeight
+        rowCount={columns.length}
+        rowGetter={({ index }) => columns[index]}
+        rowHeight={20}
+        width={width}
+      >
+        <Column
+          label='No'
+          cellDataGetter={
+            ({ columnData, dataKey, rowData }) => rowData._ix + 1
+          }
+          dataKey='_ix'
+          width={60}
+        />
+        <Column
+          label='Label'
+          cellDataGetter={
+            ({ columnData, dataKey, rowData }) => rowData.label
+          }
+          dataKey='label'
+          width={60}
+          flexGrow={1}
+        />
+        <Column
+          label='Path'
+          cellDataGetter={
+            ({ columnData, dataKey, rowData }) => rowData.path
+          }
+          dataKey='path'
+          width={60}
+          flexGrow={1}
+        />
+        <Column
+          label='Width'
+          cellDataGetter={
+            ({ columnData, dataKey, rowData }) => rowData.width
+          }
+          dataKey='width'
+          width={60}
+          flexGrow={1}
+        />
+        <Column
+          label='Formatter'
+          cellDataGetter={
+            ({ columnData, dataKey, rowData }) => rowData.formatter
+          }
+          dataKey='formatter'
+          width={120}
+          flexGrow={1}
+        />
+      </Table>
+    )}
+  </AutoSizer>
+)
+
 export class ColumnsConfigurator extends React.Component {
   state = {
     isOpen: false,
@@ -78,6 +144,13 @@ export class ColumnsConfigurator extends React.Component {
         <button onClick={() => this.setState({ isOpen: !isOpen })}>
           Columns
         </button>
+        { isOpen &&
+          <TableOfColumns columns={
+            R.addIndex(R.map)(
+              (col, ix) => R.merge(col, { _ix: ix })
+            )(columns)
+          }/>
+        }
         { isOpen &&
           <ol>
             { columns.map((col, ix) => (
