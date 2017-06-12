@@ -182,52 +182,6 @@ const styles = {
   }
 }
 
-const RowsView = rows => (
-  <div>
-    <AutoSizer disableHeight>
-      {({ width }) => (
-        <Table
-          style={styles.table}
-          height={300}
-          width={width}
-          headerHeight={24}
-          rowCount={peopleRows.length}
-          rowGetter={({ index }) => peopleRows[index]}
-          rowHeight={24}
-        >
-          <Column label='ID'
-            style={styles.column}
-            cellDataGetter={
-              ({ columnData, dataKey, rowData }) => rowData._id
-            }
-            dataKey='_id'
-            width={60}
-          />
-          <Column label='First name'
-            headerRenderer={({
-              label
-            }) => (
-              <div style={{ textTransform: 'none' }}>
-                {label}
-              </div>
-            )}
-            cellDataGetter={
-              ({ columnData, dataKey, rowData }) => rowData.firstName
-            }
-            dataKey='firstName'
-            width={90}
-          />
-          <Column label='Date of birth'
-            dataKey='details.dob'
-            width={90}
-            flexGrow={1}
-          />
-        </Table>
-      )}
-    </AutoSizer>
-  </div>
-)
-
 const getRowValue = (row, column) => {
   const path = column.path.split('.')
   const value = R.path(path, row)
@@ -346,12 +300,6 @@ const App = () => <Provider store={store}>
       <h1>Datatable Demo</h1>
 
       <MyGrid />
-
-      <RowsView
-        header={() => <p>this is a header</p>}
-        numRows={peopleRows.length}
-        renderRow={i => <p>This is row {i}</p>}
-      />
 
     </div>
   </MuiThemeProvider>

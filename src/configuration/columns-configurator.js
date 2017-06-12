@@ -68,7 +68,6 @@ export class ColumnsConfigurator extends React.Component {
     this.props.onChange(R.remove(ix, 1, this.props.columns))
   }
   onChangeColumn = (ix, newColumn) => {
-    console.log('onChangeColumn', ix, newColumn)
     this.props.onChange(R.adjust(() => newColumn, ix, this.props.columns))
   }
   render() {
