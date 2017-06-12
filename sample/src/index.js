@@ -172,16 +172,6 @@ import Table from 'react-virtualized/dist/commonjs/Table'
 import MultiGrid from 'react-virtualized/dist/commonjs/MultiGrid'
 import Column from 'react-virtualized/dist/commonjs/Table/Column'
 
-const styles = {
-  table: {
-    width: '100%'
-  },
-  column: {
-    whiteSpace: 'nowrap',
-    overflow: 'hidden'
-  }
-}
-
 const getRowValue = (row, column) => {
   const path = column.path.split('.')
   const value = R.path(path, row)
