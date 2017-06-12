@@ -206,57 +206,68 @@ const getRowValue = (row, column) => {
   return formatted
 }
 
-const MultiGridView = ({ rows, columns }) => (
-  <div>
-    <AutoSizer disableHeight>
-      {({ width }) => (
-        <MultiGrid
-          fixedColumnCount={1}
-          fixedRowCount={1}
-          columnCount={columns.length}
-          rowCount={rows.length + 1}
-          height={300}
-          style={{
-            border: '1px solid #ddd'
-          }}
-          width={width}
-          columnWidth={({ index }) => columns[index].width || 80 }
-          rowHeight={({ index }) => index === 0 ? 28 : 20}
-          cellRenderer={({
-            columnIndex, rowIndex, key, style
-          }) => {
-            if (rowIndex === 0) {
-              return (
-                <div key={key} style={R.merge(style, {
-                  height: 24,
-                  borderBottom: '1px solid #eee',
-                  borderRight: '1px solid #eee'
-                })}>
-                  <div style={{ fontWeight: 700, }}>
-                    {columns[columnIndex].label}
-                  </div>
-                </div>
-              )
-            } else {
-              const row = rows[rowIndex - 1]
-              const column = columns[columnIndex]
-              const value = getRowValue(row, column)
-              const content = <div>{value}</div>
-              return (
-                <div key={key} style={R.merge(style, {
-                  borderBottom: '1px solid #eee',
-                  borderRight: '1px solid #eee'
-                })}>
-                  {content}
-                </div>
-              )
-            }
-          }}
-        />
-      )}
-    </AutoSizer>
-  </div>
-)
+class MultiGridView extends React.Component {
+
+  componentWillUpdate(nextProps, nextState) {
+    this.grid.recomputeGridSize() // TODO: not always?
+  }
+
+  render() {
+    const { rows, columns } = this.props
+    return (
+      <div>
+        <AutoSizer disableHeight>
+          {({ width }) => (
+            <MultiGrid
+              ref={grid => this.grid = grid}
+              fixedColumnCount={1}
+              fixedRowCount={1}
+              columnCount={columns.length}
+              rowCount={rows.length + 1}
+              height={300}
+              style={{
+                border: '1px solid #ddd'
+              }}
+              width={width}
+              columnWidth={({ index }) => columns[index].width || 80 }
+              rowHeight={({ index }) => index === 0 ? 28 : 20}
+              cellRenderer={({
+                columnIndex, rowIndex, key, style
+              }) => {
+                if (rowIndex === 0) {
+                  return (
+                    <div key={key} style={R.merge(style, {
+                      height: 24,
+                      borderBottom: '1px solid #eee',
+                      borderRight: '1px solid #eee'
+                    })}>
+                      <div style={{ fontWeight: 700, }}>
+                        {columns[columnIndex].label}
+                      </div>
+                    </div>
+                  )
+                } else {
+                  const row = rows[rowIndex - 1]
+                  const column = columns[columnIndex]
+                  const value = getRowValue(row, column)
+                  const content = <div>{value}</div>
+                  return (
+                    <div key={key} style={R.merge(style, {
+                      borderBottom: '1px solid #eee',
+                      borderRight: '1px solid #eee'
+                    })}>
+                      {content}
+                    </div>
+                  )
+                }
+              }}
+            />
+          )}
+        </AutoSizer>
+      </div>
+    )
+  }
+}
 
 import config from '../../src/configuration/config'
 import { ColumnsConfigurator } from '../../src/configuration/columns-configurator'

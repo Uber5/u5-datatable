@@ -9,27 +9,34 @@ import WindowScroller from 'react-virtualized/dist/commonjs/WindowScroller'
 
 import { EditableCodeView } from '../editable-code-view'
 
-class JSONEditableText extends React.Component {
+class EditableText extends React.Component {
 
   state = {
     isEditing: false
   }
 
   render() {
-    const { value, onChange } = this.props
+    const { value, onChange, type } = this.props
     const { isEditing } = this.state
 
     if (isEditing) {
       return <input
-        type='text'
-        value={value}
-        onChange={e => onChange(e.target.value)}
+        type={type || 'text'}
+        value={value || ''}
+        onChange={e => {
+          const raw = e.target.value
+          const value = type === 'number' ? Number(raw) : raw
+          console.log('EditableText, onChange', value, typeof value, type)
+          onChange(value)
+        }}
         onBlur={() => this.setState({ isEditing: false })}
       />
     } else {
-      return <span onClick={() => this.setState({ isEditing: true })}>
-        {value}
-      </span>
+      return <div style={{ height: '100%' }}
+        onClick={() => this.setState({ isEditing: true })}
+      >
+        {'' + value}
+      </div>
     }
   }
 
@@ -40,7 +47,7 @@ const ColumnConfigurator = ({ column, index, onDelete, onChange }) => (
     <JSONTree data={column} valueRenderer={(raw, value, path) => {
       switch(path) {
         case 'label':
-          return <JSONEditableText
+          return <EditableText
             value={value}
             onChange={value => onChange({
               ...column,
@@ -63,7 +70,20 @@ const ColumnConfigurator = ({ column, index, onDelete, onChange }) => (
   </span>
 )
 
-const TableOfColumns = ({ columns, onChangeColumn }) => (
+const plainTextRenderer = ({ path, onChange, type }) => ({
+  cellData, columnData, dataKey, rowData, rowIndex
+}) => (
+  <EditableText
+    value={cellData}
+    type={type}
+    onChange={value => onChange({
+      ...rowData,
+      [path]: value,
+    })}
+  />
+)
+
+const TableOfColumns = ({ columns, onChange }) => (
   <AutoSizer disableHeight>
     {({ width }) => (
       <Table
@@ -88,6 +108,7 @@ const TableOfColumns = ({ columns, onChangeColumn }) => (
           cellDataGetter={
             ({ columnData, dataKey, rowData }) => rowData.label
           }
+          cellRenderer={plainTextRenderer({ path: 'label', onChange })}
           dataKey='label'
           width={60}
           flexGrow={1}
@@ -97,6 +118,7 @@ const TableOfColumns = ({ columns, onChangeColumn }) => (
           cellDataGetter={
             ({ columnData, dataKey, rowData }) => rowData.path
           }
+          cellRenderer={plainTextRenderer({ path: 'path', onChange })}
           dataKey='path'
           width={60}
           flexGrow={1}
@@ -106,6 +128,7 @@ const TableOfColumns = ({ columns, onChangeColumn }) => (
           cellDataGetter={
             ({ columnData, dataKey, rowData }) => rowData.width
           }
+          cellRenderer={plainTextRenderer({ path: 'width', onChange, type: 'number' })}
           dataKey='width'
           width={60}
           flexGrow={1}
@@ -134,6 +157,7 @@ export class ColumnsConfigurator extends React.Component {
     this.props.onChange(R.remove(ix, 1, this.props.columns))
   }
   onChangeColumn = (ix, newColumn) => {
+    console.log('onChangeColumn', ix, newColumn)
     this.props.onChange(R.adjust(() => newColumn, ix, this.props.columns))
   }
   render() {
@@ -145,25 +169,14 @@ export class ColumnsConfigurator extends React.Component {
           Columns
         </button>
         { isOpen &&
-          <TableOfColumns columns={
-            R.addIndex(R.map)(
-              (col, ix) => R.merge(col, { _ix: ix })
-            )(columns)
-          }/>
-        }
-        { isOpen &&
-          <ol>
-            { columns.map((col, ix) => (
-              <li key={ix}>
-                <ColumnConfigurator
-                  index={ix}
-                  column={col}
-                  onDelete={this.onDelete}
-                  onChange={c => this.onChangeColumn(ix, c)}
-                />
-              </li>
-            ))}
-          </ol>
+          <TableOfColumns
+            columns={
+              R.addIndex(R.map)(
+                (col, ix) => R.merge(col, { _ix: ix })
+              )(columns)
+            }
+            onChange={c => this.onChangeColumn(c._ix, c)}
+          />
         }
         { isOpen &&
           <button onClick={() => this.setState({ isAddOpen: !isAddOpen })}>Add</button>
