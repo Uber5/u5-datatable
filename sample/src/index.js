@@ -314,6 +314,40 @@ class JSONEditableText extends React.Component {
 
 import JSONTree from 'react-json-tree'
 
+class EditableFunction extends React.Component {
+
+  state = {
+    isEditing: false
+  }
+
+  updateCode = newCode => {
+    this.setState({ editedCode: newCode })
+  }
+
+  render() {
+    const { code } = this.props
+    const { isEditing, editedCode } = this.state
+
+    if (isEditing) {
+      return <div>
+        <textarea
+          value={editedCode || code}
+          onChange={e => this.updateCode(e.target.value)}
+          onBlur={() => this.setState({ isEditing: false })}
+          />
+      </div>
+    } else {
+      return <span onClick={() => this.setState({ isEditing: true })}>
+        {code}
+        { editedCode && editedCode !== code &&
+          <p>(unsaved changed)</p>
+        }
+      </span>
+    }
+
+  }
+}
+
 const ColumnConfigurator = ({ column, index, onDelete, onChange }) => (
   <span>
     <JSONTree data={column} valueRenderer={(raw, value, path) => {
@@ -327,8 +361,8 @@ const ColumnConfigurator = ({ column, index, onDelete, onChange }) => (
             })}
           />
         case 'formatter':
-          return <JSONEditableText
-            value={value}
+          return <EditableFunction
+            code={value}
             onChange={value => onChange({
               ...column,
               formatter: value,
