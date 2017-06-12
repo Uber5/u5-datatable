@@ -231,7 +231,17 @@ const RowsView = rows => (
 const getRowValue = (row, column) => {
   const path = column.path.split('.')
   const value = R.path(path, row)
-  return column.formatter ? column.formatter(value) : value
+  const formatter = column.formatter ? column.formatter : v => v
+  const formatted = (value => {
+    try {
+      const raw = formatter(value)
+      if (!raw) return ''
+      return raw.toString()
+    } catch (e) {
+      return <a href="#" onClick={() => alert(e.toString())}>Error!</a>
+    }
+  })(value)
+  return formatted
 }
 
 const MultiGridView = ({ rows, columns }) => (
@@ -286,150 +296,8 @@ const MultiGridView = ({ rows, columns }) => (
   </div>
 )
 
-class JSONEditableText extends React.Component {
-
-  state = {
-    isEditing: false
-  }
-
-  render() {
-    const { value, onChange } = this.props
-    const { isEditing } = this.state
-
-    if (isEditing) {
-      return <input
-        type='text'
-        value={value}
-        onChange={e => onChange(e.target.value)}
-        onBlur={() => this.setState({ isEditing: false })}
-      />
-    } else {
-      return <span onClick={() => this.setState({ isEditing: true })}>
-        {value}
-      </span>
-    }
-  }
-
-}
-
-import JSONTree from 'react-json-tree'
-import { EditableCodeView } from '../../src/editable-code-view'
-
-const ColumnConfigurator = ({ column, index, onDelete, onChange }) => (
-  <span>
-    <JSONTree data={column} valueRenderer={(raw, value, path) => {
-      switch(path) {
-        case 'label':
-          return <JSONEditableText
-            value={value}
-            onChange={value => onChange({
-              ...column,
-              label: value,
-            })}
-          />
-        case 'formatter':
-          return <EditableCodeView
-            code={value}
-            onChange={value => onChange({
-              ...column,
-              formatter: value,
-            })}
-          />
-        default:
-          return <span>{raw}</span>
-      }
-    }}/>
-    <button onClick={() => onDelete(index)}>Remove</button>
-  </span>
-)
-
-class ColumnsConfigurator extends React.Component {
-  state = {
-    isOpen: false,
-    isAddOpen: false
-  }
-  onDelete = ix => {
-    console.log('onDelete', ix)
-    this.props.onChange(R.remove(ix, 1, this.props.columns))
-  }
-  onChangeColumn = (ix, newColumn) => {
-    console.log('onChangeColumn', ix, newColumn)
-    this.props.onChange(R.adjust(() => newColumn, ix, this.props.columns))
-  }
-  render() {
-    const { columns, onChange } = this.props
-    const { isOpen, isAddOpen } = this.state
-    return (
-      <div>
-        <button onClick={() => this.setState({ isOpen: !isOpen })}>
-          Columns
-        </button>
-        { isOpen &&
-          <ol>
-            { columns.map((col, ix) => (
-              <li key={ix}>
-                <ColumnConfigurator
-                  index={ix}
-                  column={col}
-                  onDelete={this.onDelete}
-                  onChange={c => this.onChangeColumn(ix, c)}
-                />
-              </li>
-            ))}
-          </ol>
-        }
-        { isOpen &&
-          <button onClick={() => this.setState({ isAddOpen: !isAddOpen })}>Add</button>
-        }
-        { isOpen && isAddOpen &&
-          <p>add...</p>
-        }
-      </div>
-    )
-  }
-}
-
-const config = ({
-  columns,
-  moreConfig // TODO, groups? sorting? filters?
-}) => Configurable => props => {
-
-  class Config extends React.Component {
-    state = {
-      columns
-    }
-
-    render() {
-      const { columns } = this.state
-      const columnsEvaluated = R.map(
-        R.pipe(
-          R.when(
-            R.propSatisfies(R.isNil, 'formatter'),
-            R.set(R.lensProp('formatter'), 'v => v')
-          ),
-          R.over(R.lensProp('formatter'), f => eval(f))
-        )
-      )(columns)
-
-      console.log('columnsEvaluated', columnsEvaluated)
-
-      return <div>
-        <ColumnsConfigurator
-          columns={columns}
-          onChange={newColumns => this.setState({ columns: newColumns })}
-        />
-        <Configurable
-          configuration={{
-            columns: columnsEvaluated
-          }}
-          {...props}
-        />
-      </div>
-    }
-  }
-
-  return <Config />
-}
+import config from '../../src/configuration/config'
+import { ColumnsConfigurator } from '../../src/configuration/columns-configurator'
 
 const MyGrid = config({
   columns: [
