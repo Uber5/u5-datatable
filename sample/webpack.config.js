@@ -22,7 +22,7 @@ module.exports = {
         loaders: [ 'style', 'css' ],
         // include: path.join(__dirname, 'src')
       },
-      {
+      { test: /\.json$/, loader: "json-loader" },      {
         test: /\.js$/,
         exclude: /(node_modules|bower_components)/,
         loader: 'babel',

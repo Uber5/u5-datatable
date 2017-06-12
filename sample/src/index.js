@@ -286,24 +286,78 @@ const MultiGridView = ({ rows, columns }) => (
   </div>
 )
 
-const ColumnConfigurator = ({ column, index, onDelete }) => (
+class JSONEditableText extends React.Component {
+
+  state = {
+    isEditing: false
+  }
+
+  render() {
+    const { value, onChange } = this.props
+    const { isEditing } = this.state
+
+    if (isEditing) {
+      return <input
+        type='text'
+        value={value}
+        onChange={e => onChange(e.target.value)}
+        onBlur={() => this.setState({ isEditing: false })}
+      />
+    } else {
+      return <span onClick={() => this.setState({ isEditing: true })}>
+        {value}
+      </span>
+    }
+  }
+
+}
+
+import JSONTree from 'react-json-tree'
+
+const ColumnConfigurator = ({ column, index, onDelete, onChange }) => (
   <span>
-    { JSON.stringify(column) }
+    <JSONTree data={column} valueRenderer={(raw, value, path) => {
+      switch(path) {
+        case 'label':
+          return <JSONEditableText
+            value={value}
+            onChange={value => onChange({
+              ...column,
+              label: value,
+            })}
+          />
+        case 'formatter':
+          return <JSONEditableText
+            value={value}
+            onChange={value => onChange({
+              ...column,
+              formatter: value,
+            })}
+          />
+        default:
+          return <span>{raw}</span>
+      }
+    }}/>
     <button onClick={() => onDelete(index)}>Remove</button>
   </span>
 )
 
 class ColumnsConfigurator extends React.Component {
   state = {
-    isOpen: false
+    isOpen: false,
+    isAddOpen: false
   }
   onDelete = ix => {
     console.log('onDelete', ix)
     this.props.onChange(R.remove(ix, 1, this.props.columns))
   }
+  onChangeColumn = (ix, newColumn) => {
+    console.log('onChangeColumn', ix, newColumn)
+    this.props.onChange(R.adjust(() => newColumn, ix, this.props.columns))
+  }
   render() {
     const { columns, onChange } = this.props
-    const { isOpen } = this.state
+    const { isOpen, isAddOpen } = this.state
     return (
       <div>
         <button onClick={() => this.setState({ isOpen: !isOpen })}>
@@ -317,10 +371,17 @@ class ColumnsConfigurator extends React.Component {
                   index={ix}
                   column={col}
                   onDelete={this.onDelete}
+                  onChange={c => this.onChangeColumn(ix, c)}
                 />
               </li>
             ))}
           </ol>
+        }
+        { isOpen &&
+          <button onClick={() => this.setState({ isAddOpen: !isAddOpen })}>Add</button>
+        }
+        { isOpen && isAddOpen &&
+          <p>add...</p>
         }
       </div>
     )
@@ -339,6 +400,18 @@ const config = ({
 
     render() {
       const { columns } = this.state
+      const columnsEvaluated = R.map(
+        R.pipe(
+          R.when(
+            R.propSatisfies(R.isNil, 'formatter'),
+            R.set(R.lensProp('formatter'), 'v => v')
+          ),
+          R.over(R.lensProp('formatter'), f => eval(f))
+        )
+      )(columns)
+
+      console.log('columnsEvaluated', columnsEvaluated)
+
       return <div>
         <ColumnsConfigurator
           columns={columns}
@@ -346,7 +419,7 @@ const config = ({
         />
         <Configurable
           configuration={{
-            columns
+            columns: columnsEvaluated
           }}
           {...props}
         />
@@ -366,7 +439,7 @@ const MyGrid = config({
       label: 'Date of birth',
       path: 'details.dob',
       width: 120,
-      formatter: v => v.toLocaleDateString()
+      formatter: 'v => v.toLocaleDateString()'
     },
     {
       label: 'Income',
