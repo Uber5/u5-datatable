@@ -21,7 +21,7 @@ interface State {
   feedback?: string
 }
 
-class EditableCodeTextAreaInner extends React.Component {
+class CodeEditor extends React.Component {
 
   render() {
     const { code, width, onChange, uniqueName } = this.props
@@ -41,15 +41,10 @@ class EditableCodeTextAreaInner extends React.Component {
   }
 }
 
-const EditableCodeTextArea = (EditableCodeTextAreaInner)
-
-class PortalInner extends React.Component {
+class ClickAwayWrapperInner extends React.Component {
   handleClickOutside = e => this.props.onClose()
-  // shouldComponentUpdate() {
-  //   return false
-  // }
   render() {
-    console.log('PortalInner, render')
+    console.log('ClickAwayWrapperInner, render')
     const { width, children } = this.props
     return (
       <div style={{
@@ -63,7 +58,7 @@ class PortalInner extends React.Component {
     )
   }
 }
-const CodePortal = onClickOutside(PortalInner)
+const ClickAwayWrapper = onClickOutside(ClickAwayWrapperInner)
 
 class EditableCodeViewInner extends React.Component {
 
@@ -75,15 +70,6 @@ class EditableCodeViewInner extends React.Component {
   componentDidMount() {
     this.setState({ originalCode: this.props.code })
   }
-
-  // shouldComponentUpdate(nextProps, nextState) {
-  //   return nextState.isEditing !== this.props.isEditing
-  // }
-
-  // handleClickOutside = e => {
-  //   console.log('handleClickOutside')
-  //   // this.setState({ isEditing: false })
-  // }
 
   updateCode = (newCode: string) => {
     this.setState({ editedCode: newCode })
@@ -113,14 +99,14 @@ class EditableCodeViewInner extends React.Component {
 
       return (
         <Portal container={() => container}>
-          <CodePortal
+          <ClickAwayWrapper
             style={{ margin: 20 }}
             onClose={this.onClose}
             width={width}
             container={container}
           >
             <h3>{ fieldName }</h3>
-            <EditableCodeTextArea
+            <CodeEditor
               uniqueName={uniqueName}
               width={width - 20}
               code={editedCode || code}
@@ -164,7 +150,7 @@ class EditableCodeViewInner extends React.Component {
                 assign directly to it, e.g. <code>out = value</code>.
               </li>
             </ul>
-          </CodePortal>
+          </ClickAwayWrapper>
         </Portal>
       )
     } else {

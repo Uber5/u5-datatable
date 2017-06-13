@@ -210,7 +210,7 @@ const getRowValue = (row, column) => {
 class MultiGridView extends React.Component {
 
   componentWillUpdate(nextProps, nextState) {
-    this.grid.recomputeGridSize() // TODO: not always?
+    this.grid && this.grid.recomputeGridSize()
   }
 
   render() {
@@ -248,18 +248,22 @@ class MultiGridView extends React.Component {
                     </div>
                   )
                 } else {
-                  const row = rows[rowIndex - 1]
-                  const column = columns[columnIndex]
-                  const value = getRowValue(row, column)
-                  const content = <div>{value}</div>
-                  return (
-                    <div key={key} style={R.merge(style, {
-                      borderBottom: '1px solid #eee',
-                      borderRight: '1px solid #eee'
-                    })}>
-                      {content}
-                    </div>
-                  )
+                  try {
+                    const row = rows[rowIndex - 1]
+                    const column = columns[columnIndex]
+                    const value = getRowValue(row, column)
+                    const content = <div>{value}</div>
+                    return (
+                      <div key={key} style={R.merge(style, {
+                        borderBottom: '1px solid #eee',
+                        borderRight: '1px solid #eee'
+                      })}>
+                        {content}
+                      </div>
+                    )
+                  } catch(e) {
+                    return <div>Error {e.getMessage()}</div>
+                  }
                 }
               }}
             />

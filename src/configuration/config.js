@@ -22,7 +22,7 @@ const transpile = source => {
     `)
   } catch (e) {
     console.log('transpile error (DO NOT LOG...)', e)
-    return () => <a href="#" onClick={() => alert(e.toString())}>Error</a>
+    return context => context.out = <a href="#" onClick={() => alert(e.toString())}>Error</a>
   }
 }
 
