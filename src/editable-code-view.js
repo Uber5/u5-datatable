@@ -18,7 +18,8 @@ import 'brace/theme/github'
 interface State {
   isEditing: bool,
   editedCode?: string,
-  feedback?: string
+  feedback?: string,
+  originalCode?: string
 }
 
 class CodeEditor extends React.Component {
@@ -59,18 +60,19 @@ class ClickAwayWrapperInner extends React.Component {
 }
 const ClickAwayWrapper = onClickOutside(ClickAwayWrapperInner)
 
+import debounce from 'throttle-debounce/debounce'
+
 class EditableCodeViewInner extends React.Component {
 
   state: State = {
-    isEditing: false,
-    originalCode: ''
+    isEditing: false
   }
 
   componentDidMount() {
     this.setState({ originalCode: this.props.code })
   }
 
-  updateCode = (newCode: string) => {
+  updateCode = debounce(500, (newCode: string) => {
     this.setState({ editedCode: newCode })
     try {
       const { onChange } = this.props
@@ -86,7 +88,7 @@ class EditableCodeViewInner extends React.Component {
         feedback: e.toString()
       })
     }
-  }
+  })
 
   onClose = () => this.setState({ isEditing: false })
 
@@ -110,10 +112,7 @@ class EditableCodeViewInner extends React.Component {
               width={width - 20}
               code={editedCode || code}
               close={() => this.setState({ isEditing: false })}
-              onChange={value => {
-                console.log('originalCode', this.state.originalCode)
-                this.updateCode(value)
-              }}
+              onChange={value => this.updateCode(value)}
             />
             { editedCode && editedCode !== code &&
               <button
