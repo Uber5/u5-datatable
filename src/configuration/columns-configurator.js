@@ -65,7 +65,6 @@ const ColumnConfigurator = ({ column, index, onDelete, onChange }) => (
           />
         case 'formatter':
           return <EditableCodeView
-            uniqueName={`${ column }-${ index }`}
             code={value}
             onChange={value => onChange({
               ...column,
@@ -167,6 +166,8 @@ class TableOfColumns extends React.Component {
                     cellData, columnData, dataKey, rowData, rowIndex
                   }) => (
                     <EditableCodeView
+                      uniqueName={`${ dataKey }-${ rowIndex }`}
+                      fieldName={`Formatter for ${ rowData.label || rowData.path || '(unknown field)' }`}
                       container={this.refs.container}
                       width={width}
                       code={cellData}
