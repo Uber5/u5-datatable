@@ -7,11 +7,30 @@ import * as Babel from 'babel-standalone'
 import template from 'babel-template'
 import * as t from 'babel-types'
 
+import onClickOutside from 'react-onclickoutside'
+
 interface State {
   isEditing: bool,
   editedCode?: string,
   feedback?: string
 }
+
+class EditableCodeTextAreaInner extends React.Component {
+
+  handleClickOutside = e => this.props.close()
+
+  render() {
+    const { code, width, onChange } = this.props
+    return <textarea
+      style={{ width: width }}
+      value={code}
+      rows={Math.max(3, (code || '').split('\n').length)}
+      onChange={onChange}
+    />
+  }
+}
+
+const EditableCodeTextArea = onClickOutside(EditableCodeTextAreaInner)
 
 export class EditableCodeView extends React.Component {
 
@@ -38,7 +57,7 @@ export class EditableCodeView extends React.Component {
   }
 
   render() {
-    const { code, container } = this.props
+    const { code, container, width } = this.props
     const { isEditing, editedCode, feedback } = this.state
 
     if (isEditing) {
@@ -47,13 +66,15 @@ export class EditableCodeView extends React.Component {
           <div style={{
             padding: 10,
             display: 'block',
-            background: 'yellow'
+            background: 'yellow',
+            width
           }}>
-            <textarea
-              value={editedCode || code}
+            <EditableCodeTextArea
+              width={width - 20}
+              code={editedCode || code}
+              close={() => this.setState({ isEditing: false })}
               onChange={e => this.updateCode(e.target.value)}
-              onBlur={() => this.setState({ isEditing: false })}
-              />
+            />
             { feedback &&
               <pre>
                 { feedback }
@@ -67,6 +88,9 @@ export class EditableCodeView extends React.Component {
         {code}
         { editedCode && editedCode !== code &&
           <p>(unsaved changes)</p>
+        }
+        { !editedCode && !code &&
+          <p>(no formatter)</p>
         }
       </span>
     }

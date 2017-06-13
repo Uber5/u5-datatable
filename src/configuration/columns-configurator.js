@@ -103,9 +103,7 @@ class TableOfColumns extends React.Component {
           <div ref='container' style={{
             position: 'absolute',
             zIndex: 10,
-            background: 'yellow'
           }}>
-            (relative...)
           </div>
         </div>
 
@@ -169,6 +167,7 @@ class TableOfColumns extends React.Component {
                   }) => (
                     <EditableCodeView
                       container={this.refs.container}
+                      width={width}
                       code={cellData}
                       onChange={value => onChange({
                         ...rowData,

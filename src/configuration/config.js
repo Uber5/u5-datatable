@@ -14,7 +14,7 @@ const transpile = source => {
     const { code, ast } = transformed
     return eval(`
       context => (function(context) {
-        const { React, value } = context
+        const { React, value, row } = context
         let { out } = context
         ${code}
         context.out = out
@@ -50,7 +50,7 @@ export default ({
       )(columns)
 
       console.log('columnsEvaluated', columnsEvaluated)
-      
+
       return <div>
         <ColumnsConfigurator
           columns={columns}

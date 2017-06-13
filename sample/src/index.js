@@ -181,7 +181,8 @@ const getRowValue = (row, column) => {
       const context = {
         React,
         out: '',
-        value
+        value,
+        row
       }
       formatter.call(undefined, context)
 
