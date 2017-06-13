@@ -9,6 +9,12 @@ import * as t from 'babel-types'
 
 import onClickOutside from 'react-onclickoutside'
 
+import brace from 'brace'
+import AceEditor from 'react-ace'
+
+import 'brace/mode/jsx'
+import 'brace/theme/github'
+
 interface State {
   isEditing: bool,
   editedCode?: string,
@@ -20,13 +26,20 @@ class EditableCodeTextAreaInner extends React.Component {
   handleClickOutside = e => this.props.close()
 
   render() {
-    const { code, width, onChange } = this.props
-    return <textarea
-      style={{ width: width }}
-      value={code}
-      rows={Math.max(3, (code || '').split('\n').length)}
-      onChange={onChange}
-    />
+    const { code, width, onChange, uniqueName } = this.props
+    return <div>
+      <AceEditor
+        mode="jsx"
+        theme="github"
+        onChange={onChange}
+        name={uniqueName}
+        value={code}
+        editorProps={{$blockScrolling: true}}
+        tabSize={2}
+        minLines={3}
+        maxLines={10}
+      />
+    </div>
   }
 }
 
@@ -57,7 +70,7 @@ export class EditableCodeView extends React.Component {
   }
 
   render() {
-    const { code, container, width } = this.props
+    const { code, container, width, uniqueName } = this.props
     const { isEditing, editedCode, feedback } = this.state
 
     if (isEditing) {
@@ -70,10 +83,11 @@ export class EditableCodeView extends React.Component {
             width
           }}>
             <EditableCodeTextArea
+              uniqueName={uniqueName}
               width={width - 20}
               code={editedCode || code}
               close={() => this.setState({ isEditing: false })}
-              onChange={e => this.updateCode(e.target.value)}
+              onChange={value => this.updateCode(value)}
             />
             { feedback &&
               <pre>

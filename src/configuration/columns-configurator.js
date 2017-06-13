@@ -65,6 +65,7 @@ const ColumnConfigurator = ({ column, index, onDelete, onChange }) => (
           />
         case 'formatter':
           return <EditableCodeView
+            uniqueName={`${ column }-${ index }`}
             code={value}
             onChange={value => onChange({
               ...column,
