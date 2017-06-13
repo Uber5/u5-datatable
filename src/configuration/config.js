@@ -49,7 +49,7 @@ export default ({
         )
       )(columns)
 
-      console.log('columnsEvaluated', columnsEvaluated)
+      // console.log('columnsEvaluated', columnsEvaluated)
 
       return <div>
         <ColumnsConfigurator

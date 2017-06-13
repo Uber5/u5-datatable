@@ -44,7 +44,6 @@ class CodeEditor extends React.Component {
 class ClickAwayWrapperInner extends React.Component {
   handleClickOutside = e => this.props.onClose()
   render() {
-    console.log('ClickAwayWrapperInner, render')
     const { width, children } = this.props
     return (
       <div style={{
