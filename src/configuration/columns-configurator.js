@@ -7,13 +7,17 @@ import Table from 'react-virtualized/dist/commonjs/Table'
 import Column from 'react-virtualized/dist/commonjs/Table/Column'
 import WindowScroller from 'react-virtualized/dist/commonjs/WindowScroller'
 
+import onClickOutside from 'react-onclickoutside'
+
 import { EditableCodeView } from '../editable-code-view'
 
-class EditableText extends React.Component {
+class EditableTextInner extends React.Component {
 
   state = {
     isEditing: false
   }
+
+  handleClickOutside = e => this.setState({ isEditing: false })
 
   render() {
     const { value, onChange, type } = this.props
@@ -23,6 +27,7 @@ class EditableText extends React.Component {
       return <input
         type={type || 'text'}
         value={value || ''}
+        autoFocus
         onChange={e => {
           const raw = e.target.value
           const value = type === 'number' ? Number(raw) : raw
@@ -41,6 +46,8 @@ class EditableText extends React.Component {
   }
 
 }
+
+const EditableText = onClickOutside(EditableTextInner)
 
 const ColumnConfigurator = ({ column, index, onDelete, onChange }) => (
   <span>
@@ -138,6 +145,19 @@ const TableOfColumns = ({ columns, onChange }) => (
           cellDataGetter={
             ({ columnData, dataKey, rowData }) => rowData.formatter
           }
+          cellRenderer={
+            ({
+              cellData, columnData, dataKey, rowData, rowIndex
+            }) => (
+              <EditableCodeView
+                code={cellData}
+                onChange={value => onChange({
+                  ...rowData,
+                  formatter: value,
+                })}
+              />
+            )
+          }
           dataKey='formatter'
           width={120}
           flexGrow={1}
@@ -157,7 +177,6 @@ export class ColumnsConfigurator extends React.Component {
     this.props.onChange(R.remove(ix, 1, this.props.columns))
   }
   onChangeColumn = (ix, newColumn) => {
-    console.log('onChangeColumn', ix, newColumn)
     this.props.onChange(R.adjust(() => newColumn, ix, this.props.columns))
   }
   render() {

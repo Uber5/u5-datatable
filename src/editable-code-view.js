@@ -40,18 +40,26 @@ export class EditableCodeView extends React.Component {
     const { isEditing, editedCode, feedback } = this.state
 
     if (isEditing) {
-      return <div>
-        <textarea
-          value={editedCode || code}
-          onChange={e => this.updateCode(e.target.value)}
-          onBlur={() => this.setState({ isEditing: false })}
-          />
-        { feedback &&
-          <pre>
-            { feedback }
-          </pre>
-        }
-      </div>
+      return (
+        <div style={{ position: 'absolute' }}>
+          <div style={{
+            padding: 10,
+            display: 'block',
+            background: 'yellow'
+          }}>
+            <textarea
+              value={editedCode || code}
+              onChange={e => this.updateCode(e.target.value)}
+              onBlur={() => this.setState({ isEditing: false })}
+              />
+            { feedback &&
+              <pre>
+                { feedback }
+              </pre>
+            }
+          </div>
+        </div>
+      )
     } else {
       return <span onClick={() => this.setState({ isEditing: true })}>
         {code}
