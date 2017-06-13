@@ -9,6 +9,8 @@ import WindowScroller from 'react-virtualized/dist/commonjs/WindowScroller'
 
 import onClickOutside from 'react-onclickoutside'
 
+import { Portal } from 'react-overlays'
+
 import { EditableCodeView } from '../editable-code-view'
 
 class EditableTextInner extends React.Component {
@@ -90,82 +92,104 @@ const plainTextRenderer = ({ path, onChange, type }) => ({
   />
 )
 
-const TableOfColumns = ({ columns, onChange }) => (
-  <AutoSizer disableHeight>
-    {({ width }) => (
-      <Table
-        headerHeight={24}
-        height={400}
-        autoHeight
-        rowCount={columns.length}
-        rowGetter={({ index }) => columns[index]}
-        rowHeight={20}
-        width={width}
-      >
-        <Column
-          label='No'
-          cellDataGetter={
-            ({ columnData, dataKey, rowData }) => rowData._ix + 1
-          }
-          dataKey='_ix'
-          width={60}
-        />
-        <Column
-          label='Label'
-          cellDataGetter={
-            ({ columnData, dataKey, rowData }) => rowData.label
-          }
-          cellRenderer={plainTextRenderer({ path: 'label', onChange })}
-          dataKey='label'
-          width={60}
-          flexGrow={1}
-        />
-        <Column
-          label='Path'
-          cellDataGetter={
-            ({ columnData, dataKey, rowData }) => rowData.path
-          }
-          cellRenderer={plainTextRenderer({ path: 'path', onChange })}
-          dataKey='path'
-          width={60}
-          flexGrow={1}
-        />
-        <Column
-          label='Width'
-          cellDataGetter={
-            ({ columnData, dataKey, rowData }) => rowData.width
-          }
-          cellRenderer={plainTextRenderer({ path: 'width', onChange, type: 'number' })}
-          dataKey='width'
-          width={60}
-          flexGrow={1}
-        />
-        <Column
-          label='Formatter'
-          cellDataGetter={
-            ({ columnData, dataKey, rowData }) => rowData.formatter
-          }
-          cellRenderer={
-            ({
-              cellData, columnData, dataKey, rowData, rowIndex
-            }) => (
-              <EditableCodeView
-                code={cellData}
-                onChange={value => onChange({
-                  ...rowData,
-                  formatter: value,
-                })}
+class TableOfColumns extends React.Component {
+  render() {
+    const { columns, onChange } = this.props
+
+    return (
+      <div>
+
+        <div style={{ position: 'absolute' }}>
+          <div ref='container' style={{
+            position: 'absolute',
+            zIndex: 10,
+            background: 'yellow'
+          }}>
+            (relative...)
+          </div>
+        </div>
+
+        <AutoSizer disableHeight>
+          {({ width }) => (
+            <Table
+              headerHeight={24}
+              height={400}
+              autoHeight
+              rowCount={columns.length}
+              rowGetter={({ index }) => columns[index]}
+              rowHeight={20}
+              width={width}
+            >
+              <Column
+                label='No'
+                cellDataGetter={
+                  ({ columnData, dataKey, rowData }) => rowData._ix + 1
+                }
+                dataKey='_ix'
+                width={60}
               />
-            )
-          }
-          dataKey='formatter'
-          width={120}
-          flexGrow={1}
-        />
-      </Table>
-    )}
-  </AutoSizer>
-)
+              <Column
+                label='Label'
+                cellDataGetter={
+                  ({ columnData, dataKey, rowData }) => rowData.label
+                }
+                cellRenderer={plainTextRenderer({ path: 'label', onChange })}
+                dataKey='label'
+                width={60}
+                flexGrow={1}
+              />
+              <Column
+                label='Path'
+                cellDataGetter={
+                  ({ columnData, dataKey, rowData }) => rowData.path
+                }
+                cellRenderer={plainTextRenderer({ path: 'path', onChange })}
+                dataKey='path'
+                width={60}
+                flexGrow={1}
+              />
+              <Column
+                label='Width'
+                cellDataGetter={
+                  ({ columnData, dataKey, rowData }) => rowData.width
+                }
+                cellRenderer={plainTextRenderer({ path: 'width', onChange, type: 'number' })}
+                dataKey='width'
+                width={60}
+                flexGrow={1}
+              />
+              <Column
+                label='Formatter'
+                cellDataGetter={
+                  ({ columnData, dataKey, rowData }) => rowData.formatter
+                }
+                cellRenderer={
+                  ({
+                    cellData, columnData, dataKey, rowData, rowIndex
+                  }) => (
+                    <EditableCodeView
+                      container={this.refs.container}
+                      code={cellData}
+                      onChange={value => onChange({
+                        ...rowData,
+                        formatter: value,
+                      })}
+                    />
+                  )
+                }
+                dataKey='formatter'
+                width={120}
+                flexGrow={1}
+              />
+            </Table>
+          )}
+        </AutoSizer>
+
+      </div>
+
+    )
+  }
+}
 
 export class ColumnsConfigurator extends React.Component {
   state = {

@@ -1,5 +1,7 @@
 //@flow
 
+import { Portal } from 'react-overlays'
+
 import React from 'react'
 import * as Babel from 'babel-standalone'
 import template from 'babel-template'
@@ -36,12 +38,12 @@ export class EditableCodeView extends React.Component {
   }
 
   render() {
-    const { code } = this.props
+    const { code, container } = this.props
     const { isEditing, editedCode, feedback } = this.state
 
     if (isEditing) {
       return (
-        <div style={{ position: 'absolute' }}>
+        <Portal container={() => container}>
           <div style={{
             padding: 10,
             display: 'block',
@@ -58,7 +60,7 @@ export class EditableCodeView extends React.Component {
               </pre>
             }
           </div>
-        </div>
+        </Portal>
       )
     } else {
       return <span onClick={() => this.setState({ isEditing: true })}>
