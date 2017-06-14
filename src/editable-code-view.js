@@ -38,6 +38,9 @@ class CodeEditor extends React.Component {
         tabSize={2}
         minLines={3}
         maxLines={10}
+        onLoad={editor => {
+          editor.focus()
+        }}
       />
     </div>
   }
@@ -107,6 +110,9 @@ class EditableCodeViewInner extends React.Component {
             width={width}
             container={container}
           >
+            <div style={{ textAlign: 'right' }}>
+              <button onClick={() => this.setState({ isEditing: false })}>Close</button>
+            </div>
             <h3>{ fieldName }</h3>
             <CodeEditor
               uniqueName={uniqueName}
