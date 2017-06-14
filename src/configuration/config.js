@@ -28,7 +28,8 @@ const transpile = source => {
 
 export default ({
   columns,
-  moreConfig // TODO, groups? sorting? filters?
+  moreConfig, // TODO, groups? sorting? filters?
+  onSave
 }) => Configurable => props => {
 
   class Config extends React.Component {
@@ -55,6 +56,13 @@ export default ({
         <ColumnsConfigurator
           columns={columns}
           onChange={newColumns => this.setState({ columns: newColumns })}
+          onAddColumn={newColumn => {
+            console.log('onAddColumn', newColumn)
+            this.setState({
+              columns: R.append(newColumn, columns)
+            })
+          }}
+          onSave={onSave}
         />
         <Configurable
           configuration={{

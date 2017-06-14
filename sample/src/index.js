@@ -42,7 +42,8 @@ const peopleRows = R.pipe(
         Math.floor(Math.random() * 12),
         1 + Math.floor(Math.random() * 28)
       ),
-      income: Math.floor(800 + Math.random() * 2000)
+      income: Math.floor(800 + Math.random() * 2000),
+      accountNumber: '' + Math.floor(1000000 + Math.random() * 100000)
     }
   })),
 )(1000)
@@ -292,7 +293,13 @@ const MyGrid = config({
       label: 'Income',
       path: 'details.income'
     }
-  ]
+  ],
+  table: {
+    rowHeight: 40 // TODO: or function?
+  },
+  groups: [ // TODO
+  ],
+  onSave: config => console.log('should be called when config shall be saved', config),
 })(({ configuration }) => (
   <MultiGridView
     rows={peopleRows}

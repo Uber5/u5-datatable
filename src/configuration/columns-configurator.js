@@ -9,9 +9,8 @@ import WindowScroller from 'react-virtualized/dist/commonjs/WindowScroller'
 
 import onClickOutside from 'react-onclickoutside'
 
-import { Portal } from 'react-overlays'
-
 import { EditableCodeView } from '../editable-code-view'
+import AddColumnButton from './add-column-button'
 
 class EditableTextInner extends React.Component {
 
@@ -33,7 +32,6 @@ class EditableTextInner extends React.Component {
         onChange={e => {
           const raw = e.target.value
           const value = type === 'number' ? Number(raw) : raw
-          console.log('EditableText, onChange', value, typeof value, type)
           onChange(value)
         }}
         onBlur={() => this.setState({ isEditing: false })}
@@ -94,7 +92,7 @@ const plainTextRenderer = ({ path, onChange, type }) => ({
 
 class TableOfColumns extends React.Component {
   render() {
-    const { columns, onChange } = this.props
+    const { columns, onChange, onAddColumn } = this.props
 
     return (
       <div>
@@ -109,80 +107,89 @@ class TableOfColumns extends React.Component {
 
         <AutoSizer disableHeight>
           {({ width }) => (
-            <Table
-              headerHeight={24}
-              height={400}
-              autoHeight
-              rowCount={columns.length}
-              rowGetter={({ index }) => columns[index]}
-              rowHeight={20}
-              width={width}
-            >
-              <Column
-                label='No'
-                cellDataGetter={
-                  ({ columnData, dataKey, rowData }) => rowData._ix + 1
-                }
-                dataKey='_ix'
-                width={60}
-              />
-              <Column
-                label='Label'
-                cellDataGetter={
-                  ({ columnData, dataKey, rowData }) => rowData.label
-                }
-                cellRenderer={plainTextRenderer({ path: 'label', onChange })}
-                dataKey='label'
-                width={60}
-                flexGrow={1}
-              />
-              <Column
-                label='Path'
-                cellDataGetter={
-                  ({ columnData, dataKey, rowData }) => rowData.path
-                }
-                cellRenderer={plainTextRenderer({ path: 'path', onChange })}
-                dataKey='path'
-                width={60}
-                flexGrow={1}
-              />
-              <Column
-                label='Width'
-                cellDataGetter={
-                  ({ columnData, dataKey, rowData }) => rowData.width
-                }
-                cellRenderer={plainTextRenderer({ path: 'width', onChange, type: 'number' })}
-                dataKey='width'
-                width={60}
-                flexGrow={1}
-              />
-              <Column
-                label='Formatter'
-                cellDataGetter={
-                  ({ columnData, dataKey, rowData }) => rowData.formatter
-                }
-                cellRenderer={
-                  ({
-                    cellData, columnData, dataKey, rowData, rowIndex
-                  }) => (
-                    <EditableCodeView
-                      uniqueName={`${ dataKey }-${ rowIndex }`}
-                      fieldName={`Formatter for ${ rowData.label || rowData.path || '(unknown field)' }`}
-                      container={this.refs.container}
-                      width={width}
-                      code={cellData}
-                      onChange={value => onChange({
-                        ...rowData,
-                        formatter: value,
-                      })}
-                    />
-                  )
-                }
-                dataKey='formatter'
-                width={120}
-                flexGrow={1}
-              />
-            </Table>
+            <div>
+              <Table
+                headerHeight={24}
+                height={400}
+                autoHeight
+                rowCount={columns.length}
+                rowGetter={({ index }) => columns[index]}
+                rowHeight={20}
+                width={width}
+              >
+                <Column
+                  label='No'
+                  cellDataGetter={
+                    ({ columnData, dataKey, rowData }) => rowData._ix + 1
+                  }
+                  dataKey='_ix'
+                  width={60}
+                />
+                <Column
+                  label='Label'
+                  cellDataGetter={
+                    ({ columnData, dataKey, rowData }) => rowData.label
+                  }
+                  cellRenderer={plainTextRenderer({ path: 'label', onChange })}
+                  dataKey='label'
+                  width={60}
+                  flexGrow={1}
+                />
+                <Column
+                  label='Path'
+                  cellDataGetter={
+                    ({ columnData, dataKey, rowData }) => rowData.path
+                  }
+                  cellRenderer={plainTextRenderer({ path: 'path', onChange })}
+                  dataKey='path'
+                  width={60}
+                  flexGrow={1}
+                />
+                <Column
+                  label='Width'
+                  cellDataGetter={
+                    ({ columnData, dataKey, rowData }) => rowData.width
+                  }
+                  cellRenderer={plainTextRenderer({ path: 'width', onChange, type: 'number' })}
+                  dataKey='width'
+                  width={60}
+                  flexGrow={1}
+                />
+                <Column
+                  label='Formatter'
+                  cellDataGetter={
+                    ({ columnData, dataKey, rowData }) => rowData.formatter
+                  }
+                  cellRenderer={
+                    ({
+                      cellData, columnData, dataKey, rowData, rowIndex
+                    }) => (
+                      <EditableCodeView
+                        uniqueName={`${ dataKey }-${ rowIndex }`}
+                        fieldName={`Formatter for ${ rowData.label || rowData.path || '(unknown field)' }`}
+                        container={this.refs.container}
+                        width={width}
+                        code={cellData}
+                        onChange={value => onChange({
+                          ...rowData,
+                          formatter: value,
+                        })}
+                      />
+                    )
+                  }
+                  dataKey='formatter'
+                  width={120}
+                  flexGrow={1}
+                />
+              </Table>
+              { onAddColumn &&
+                <AddColumnButton
+                  container={this.refs.container}
+                  width={width}
+                  onAddColumn={onAddColumn}
+                />
+              }
+            </div>
           )}
         </AutoSizer>
 
@@ -195,7 +202,6 @@ class TableOfColumns extends React.Component {
 export class ColumnsConfigurator extends React.Component {
   state = {
     isOpen: false,
-    isAddOpen: false
   }
   onDelete = ix => {
     console.log('onDelete', ix)
@@ -205,13 +211,22 @@ export class ColumnsConfigurator extends React.Component {
     this.props.onChange(R.adjust(() => newColumn, ix, this.props.columns))
   }
   render() {
-    const { columns, onChange } = this.props
-    const { isOpen, isAddOpen } = this.state
+    const { columns, onChange, onSave, onAddColumn } = this.props
+    const { isOpen } = this.state
     return (
       <div>
-        <button onClick={() => this.setState({ isOpen: !isOpen })}>
-          Columns
-        </button>
+        <div>
+          <button onClick={() => this.setState({ isOpen: !isOpen })}>
+            Columns
+          </button>
+          { onSave &&
+            <button onClick={() => onSave({
+              columns: columns
+            })}>
+              Save
+            </button>
+          }
+        </div>
         { isOpen &&
           <TableOfColumns
             columns={
@@ -219,14 +234,11 @@ export class ColumnsConfigurator extends React.Component {
                 (col, ix) => R.merge(col, { _ix: ix })
               )(columns)
             }
-            onChange={c => this.onChangeColumn(c._ix, c)}
+            onChange={c => {
+              this.onChangeColumn(c._ix, c)
+            }}
+            onAddColumn={onAddColumn}
           />
-        }
-        { isOpen &&
-          <button onClick={() => this.setState({ isAddOpen: !isAddOpen })}>Add</button>
-        }
-        { isOpen && isAddOpen &&
-          <p>add...</p>
         }
       </div>
     )

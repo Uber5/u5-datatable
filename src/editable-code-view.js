@@ -19,7 +19,8 @@ interface State {
   isEditing: bool,
   editedCode?: string,
   feedback?: string,
-  originalCode?: string
+  originalCode?: string,
+  showHelp?: bool
 }
 
 class CodeEditor extends React.Component {
@@ -94,7 +95,7 @@ class EditableCodeViewInner extends React.Component {
 
   render() {
     const { code, container, width, uniqueName, fieldName, onChange } = this.props
-    const { isEditing, editedCode, feedback } = this.state
+    const { isEditing, editedCode, feedback, showHelp } = this.state
 
     if (isEditing) {
 
@@ -137,17 +138,24 @@ class EditableCodeViewInner extends React.Component {
                 </pre>
               </div>
             }
-            <h3>Help</h3>
-            <p>You can use the following variables:</p>
-            <ul>
-              <li><code>value</code>: The cell value, based on the path of the column.</li>
-              <li><code>row</code>: The current row.</li>
-              <li><code>out</code>:
-                The output of the formatter, i.e. the formatted value. This can be
-                a String, an object, or even a React component. The formatter must
-                assign directly to it, e.g. <code>out = value</code>.
-              </li>
-            </ul>
+            { !showHelp &&
+              <button onClick={() => this.setState({ showHelp: true })}>Help</button>
+            }
+            { showHelp &&
+              <div>
+              <h3>Help</h3>
+              <p>You can use the following variables:</p>
+              <ul>
+                <li><code>value</code>: The cell value, based on the path of the column.</li>
+                <li><code>row</code>: The current row.</li>
+                <li><code>out</code>:
+                  The output of the formatter, i.e. the formatted value. This can be
+                  a String, an object, or even a React component. The formatter must
+                  assign directly to it, e.g. <code>out = value</code>.
+                </li>
+              </ul>
+              </div>
+            }
           </ClickAwayWrapper>
         </Portal>
       )
