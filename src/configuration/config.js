@@ -77,6 +77,18 @@ export default ({
                     columns: R.append(newColumn, columns)
                   })
                 }}
+                onRemoveColumn={ix => this.setState({
+                  columns: R.remove(ix, 1, columns)
+                })}
+                onMoveColumn={(ix, delta) => {
+                  const newIx = Math.min(columns.length-1, Math.max(0, ix + delta))
+                  this.setState({
+                    columns: R.pipe(
+                      R.update(newIx, columns[ix]),
+                      R.update(ix, columns[newIx])
+                    )(columns)
+                  })
+                }}
               />)
             },
             { title: 'Data', component: <p>about data</p> },

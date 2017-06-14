@@ -92,7 +92,9 @@ const plainTextRenderer = ({ path, onChange, type }) => ({
 
 class TableOfColumns extends React.Component {
   render() {
-    const { columns, onChange, onAddColumn } = this.props
+    const {
+      columns, onChange, onAddColumn, onRemoveColumn, onMoveColumn
+    } = this.props
 
     return (
       <div>
@@ -117,6 +119,22 @@ class TableOfColumns extends React.Component {
                 rowHeight={20}
                 width={width}
               >
+                <Column
+                  label='Actions'
+                  dataKey='_actions'
+                  width={80}
+                  cellRenderer={
+                    ({
+                      cellData, columnData, dataKey, rowData, rowIndex
+                    }) => (
+                      <span>
+                        <button onClick={() => onRemoveColumn(rowIndex)}>⨯</button>
+                        <button onClick={() => onMoveColumn(rowIndex, -1)}>↑</button>
+                        <button onClick={() => onMoveColumn(rowIndex, 1)}>↓</button>
+                      </span>
+                    )
+                  }
+                />
                 <Column
                   label='No'
                   cellDataGetter={
@@ -208,7 +226,9 @@ export class ColumnsConfigurator extends React.Component {
     this.props.onChange(R.adjust(() => newColumn, ix, this.props.columns))
   }
   render() {
-    const { columns, onChange, onAddColumn } = this.props
+    const {
+      columns, onChange, onAddColumn, onRemoveColumn, onMoveColumn
+    } = this.props
     return (
       <TableOfColumns
         columns={
@@ -220,6 +240,8 @@ export class ColumnsConfigurator extends React.Component {
           this.onChangeColumn(c._ix, c)
         }}
         onAddColumn={onAddColumn}
+        onMoveColumn={onMoveColumn}
+        onRemoveColumn={ix => onRemoveColumn(ix)}
       />
     )
   }
