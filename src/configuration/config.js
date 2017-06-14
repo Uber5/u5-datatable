@@ -36,7 +36,7 @@ export default ({
   class Config extends React.Component {
 
     state = {
-      columns,
+      columns: this.props.columns || columns,
       showConfig: false
     }
 
@@ -100,11 +100,10 @@ export default ({
           configuration={{
             columns: columnsEvaluated
           }}
-          {...props}
         />
       </div>
     }
   }
 
-  return <Config />
+  return <Config {...props} />
 }

@@ -216,6 +216,10 @@ class MultiGridView extends React.Component {
 
   render() {
     const { rows, columns } = this.props
+
+    if (!rows || rows.length === 0) return <div>no rows</div>
+    if (!columns || columns.length === 0) return <div>no columns</div>
+
     return (
       <div>
         <AutoSizer disableHeight>
@@ -307,12 +311,15 @@ const MyGrid = config({
   />
 ))
 
+/* columns and rows can be defined either when configuring the `config`
+ * higher-order component, or as props on the configured component
+ */
 const App = () => <Provider store={store}>
   <MuiThemeProvider>
     <div>
       <h1>Datatable Demo</h1>
 
-      <MyGrid />
+      <MyGrid rows={peopleRows} />
 
     </div>
   </MuiThemeProvider>
