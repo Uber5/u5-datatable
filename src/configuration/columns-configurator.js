@@ -200,9 +200,6 @@ class TableOfColumns extends React.Component {
 }
 
 export class ColumnsConfigurator extends React.Component {
-  state = {
-    isOpen: false,
-  }
   onDelete = ix => {
     console.log('onDelete', ix)
     this.props.onChange(R.remove(ix, 1, this.props.columns))
@@ -211,36 +208,19 @@ export class ColumnsConfigurator extends React.Component {
     this.props.onChange(R.adjust(() => newColumn, ix, this.props.columns))
   }
   render() {
-    const { columns, onChange, onSave, onAddColumn } = this.props
-    const { isOpen } = this.state
+    const { columns, onChange, onAddColumn } = this.props
     return (
-      <div>
-        <div>
-          <button onClick={() => this.setState({ isOpen: !isOpen })}>
-            Columns
-          </button>
-          { onSave &&
-            <button onClick={() => onSave({
-              columns: columns
-            })}>
-              Save
-            </button>
-          }
-        </div>
-        { isOpen &&
-          <TableOfColumns
-            columns={
-              R.addIndex(R.map)(
-                (col, ix) => R.merge(col, { _ix: ix })
-              )(columns)
-            }
-            onChange={c => {
-              this.onChangeColumn(c._ix, c)
-            }}
-            onAddColumn={onAddColumn}
-          />
+      <TableOfColumns
+        columns={
+          R.addIndex(R.map)(
+            (col, ix) => R.merge(col, { _ix: ix })
+          )(columns)
         }
-      </div>
+        onChange={c => {
+          this.onChangeColumn(c._ix, c)
+        }}
+        onAddColumn={onAddColumn}
+      />
     )
   }
 }

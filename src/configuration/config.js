@@ -4,6 +4,7 @@ import * as Babel from 'babel-standalone'
 import * as R from 'ramda'
 
 import { ColumnsConfigurator } from './columns-configurator'
+import Tabs from '../tabs'
 
 const transpile = source => {
   try {
@@ -35,11 +36,12 @@ export default ({
   class Config extends React.Component {
 
     state = {
-      columns
+      columns,
+      showConfig: false
     }
 
     render() {
-      const { columns } = this.state
+      const { columns, showConfig } = this.state
       const columnsEvaluated = R.map(
         R.pipe(
           R.when(
@@ -53,17 +55,35 @@ export default ({
       // console.log('columnsEvaluated', columnsEvaluated)
 
       return <div>
-        <ColumnsConfigurator
-          columns={columns}
-          onChange={newColumns => this.setState({ columns: newColumns })}
-          onAddColumn={newColumn => {
-            console.log('onAddColumn', newColumn)
-            this.setState({
-              columns: R.append(newColumn, columns)
-            })
-          }}
-          onSave={onSave}
-        />
+        <div>
+          <button onClick={() => this.setState({ showConfig: !showConfig })}>
+            {showConfig ? 'Hide configuration' : 'Configure' }
+          </button>
+          { showConfig && onSave &&
+            <button onClick={() => onSave({
+              columns
+            })}>Save</button>
+          }
+        </div>
+        { showConfig &&
+          <Tabs style={{ background: 'lightgreen' }} initialIndex={0} tabs={[
+            {
+              title: 'Columns',
+              component: (<ColumnsConfigurator
+                columns={columns}
+                onChange={newColumns => this.setState({ columns: newColumns })}
+                onAddColumn={newColumn => {
+                  this.setState({
+                    columns: R.append(newColumn, columns)
+                  })
+                }}
+              />)
+            },
+            { title: 'Data', component: <p>about data</p> },
+            { title: 'More?', component: <p>about more?</p> },
+          ]} />
+        }
+
         <Configurable
           configuration={{
             columns: columnsEvaluated
