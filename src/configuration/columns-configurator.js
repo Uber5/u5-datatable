@@ -219,7 +219,6 @@ class TableOfColumns extends React.Component {
 
 export class ColumnsConfigurator extends React.Component {
   onDelete = ix => {
-    console.log('onDelete', ix)
     this.props.onChange(R.remove(ix, 1, this.props.columns))
   }
   onChangeColumn = (ix, newColumn) => {

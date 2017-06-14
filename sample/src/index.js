@@ -173,9 +173,41 @@ import Table from 'react-virtualized/dist/commonjs/Table'
 import MultiGrid from 'react-virtualized/dist/commonjs/MultiGrid'
 import Column from 'react-virtualized/dist/commonjs/Table/Column'
 
-const getRowValue = (row, column) => {
+import { Portal } from 'react-overlays'
+import JSONTree from 'react-json-tree'
+
+class JSONViewerInContainer extends React.Component {
+  state = {
+    isOpen: false
+  }
+  render() {
+    const { isOpen } = this.state
+    const { data, container, width } = this.props
+    return (
+      <div>
+        <button onClick={() => this.setState({ isOpen: true })}>data</button>
+        { isOpen &&
+          <Portal container={() => container}>
+            <div style={{ minWidth: width, background: 'lightgray' }}>
+              <div style={{ textAlign: 'right' }}>
+                <button onClick={() => this.setState({ isOpen: false })}>Close</button>
+              </div>
+
+              <JSONTree
+                data={data}
+                valueRenderer={(raw, value, path) => <span>{raw}</span>}
+              />
+            </div>
+          </Portal>
+        }
+      </div>
+    )
+  }
+}
+
+const getRowValue = (row, column, container, width) => {
   const path = column.path.split('.')
-  const value = R.path(path, row)
+  const value = column.path === '.' ? row : R.path(path, row)
   const formatter = column.formatter ? column.formatter : v => v
   const formatted = (value => {
     try {
@@ -197,7 +229,7 @@ const getRowValue = (row, column) => {
       } else if (typeof raw === 'string') {
         return raw
       } else if (typeof raw === 'object') {
-        return <span>data...</span> // TODO: should have pop-out JSON view?
+        return <JSONViewerInContainer data={raw} container={container} width={width}/>
       } else {
         return '' + raw // should be primitive types, e.g. number
       }
@@ -222,6 +254,15 @@ class MultiGridView extends React.Component {
 
     return (
       <div>
+
+        <div style={{ position: 'absolute' }}>
+          <div ref='container' style={{
+            position: 'absolute',
+            zIndex: 10,
+          }}>
+          </div>
+        </div>
+
         <AutoSizer disableHeight>
           {({ width }) => (
             <MultiGrid
@@ -256,7 +297,7 @@ class MultiGridView extends React.Component {
                   try {
                     const row = rows[rowIndex - 1]
                     const column = columns[columnIndex]
-                    const value = getRowValue(row, column)
+                    const value = getRowValue(row, column, this.refs.container, width)
                     const content = <div>{value}</div>
                     return (
                       <div key={key} style={R.merge(style, {
