@@ -35,6 +35,19 @@ const peopleRows = [
 import DetailsIcon from 'material-ui/svg-icons/content/create'
 import DeleteIcon from 'material-ui/svg-icons/action/delete'
 
+class InputTest extends React.Component {
+  render() {
+    const { value } = this.state || ''
+    return (
+      <div>
+        <input name="test" value={value}
+          onChange={e => this.setState({ value: e.target.value })}
+        />
+      </div>
+    )
+  }
+}
+
 const columns = {
   firstName: {
     label: 'First name'
@@ -62,6 +75,7 @@ const columns = {
       <DeleteIcon style={{ cursor: 'pointer' }}
         onClick={e => {e.stopPropagation(); alert(`Should delete person ${ v._id }`)}}
       />
+      <InputTest />
     </div>)
   }
 }

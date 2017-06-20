@@ -192,7 +192,7 @@ class DrilldownRecursive extends React.Component {
       const allSelected = R.all(e => R.contains(e.ix, config.selected || []), data)
 
       return (
-        <Table multiSelectable={false}>
+        <Table multiSelectable={false} selectable={false}>
           <TableHeader displaySelectAll={false} adjustForCheckbox={false}>
             <TableRow>
               <TableHeaderColumn style={styles.selectColumn}>
